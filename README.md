@@ -1,4 +1,4 @@
-# thiet-ke-cau-vn-skills
+# vn-bridge-skills
 
 Bộ skill AI chuyên ngành **cầu đường bộ Việt Nam** (TCVN 11823:2017 và các chuẩn liên quan),
 dùng chung cho Claude Code, Codex, Gemini CLI, OpenCode — chỉ cần cài một lần.
@@ -6,8 +6,8 @@ dùng chung cho Claude Code, Codex, Gemini CLI, OpenCode — chỉ cần cài m�
 ## Cài đặt (2 bước)
 
 ```bash
-git clone git@github.com:chieund/thiet-ke-cau-vn-skills.git
-cd thiet-ke-cau-vn-skills && ./install.sh        # Linux / macOS / WSL
+git clone git@github.com:chieund/vn-bridge-skills.git
+cd vn-bridge-skills && ./install.sh        # Linux / macOS / WSL
 ```
 
 Windows PowerShell: chạy `.\install.ps1` (không cần quyền Administrator).
@@ -22,7 +22,7 @@ bản mặt cầu là bao nhiêu?"* — agent phải tự nạp skill và trả 
 ## Cấu trúc repo
 
 ```
-thiet-ke-cau-vn-skills/
+vn-bridge-skills/
 ├── README.md
 ├── install.sh                 # symlink cho Linux/macOS/WSL
 ├── install.ps1                # junction cho Windows
