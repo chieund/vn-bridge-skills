@@ -2,7 +2,7 @@
 
 > Nguồn: TCVN 11823-3:2017 "Thiết kế cầu đường bộ — Phần 3: Tải trọng và hệ số tải trọng"
 > (biên soạn theo AASHTO LRFD; số điều khoản đã đánh số lại so với AASHTO).
-> Bản PDF gốc: http://www.nhatnguyen.vn/media/ftp/TCVN11823-3_2017_916997.pdf
+> Bản PDF gốc: https://cokhicongtrinh.com.vn/upload/files/TCVN%2011823_Phan%203_Tai-trong-va-he-so-tai-trong.pdf
 > ⛔ Chỉ dùng số liệu trong file này. Ngoài phạm vi file → bảo người dùng kiểm tra trực tiếp
 > bản chuẩn, không đoán, không lấy số của AASHTO LRFD ấn bản mới hoặc 22TCN 272-01.
 

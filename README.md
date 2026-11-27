@@ -1,7 +1,13 @@
 # vn-bridge-skills
 
 Bộ skill AI chuyên ngành **cầu đường bộ Việt Nam** (TCVN 11823:2017 và các chuẩn liên quan),
-dùng chung cho Claude Code, Codex, Gemini CLI, OpenCode — chỉ cần cài một lần.
+dùng chung cho Claude Code, Codex, Gemini CLI, GitHub Copilot CLI, OpenCode — chỉ cần cài một lần.
+
+## Yêu cầu
+
+- `git`, và **Python 3.8+** để chạy `scripts/bridge_calc.py` (không cần cài thư viện thêm).
+  Windows: cài Python từ python.org, lệnh có thể là `python` hoặc `py` thay cho `python3`.
+- Một trong các agent ở bảng dưới, bản có hỗ trợ Agent Skills (`SKILL.md`).
 
 ## Cài đặt (2 bước)
 
@@ -12,12 +18,31 @@ cd vn-bridge-skills && ./install.sh        # Linux / macOS / WSL
 
 Windows PowerShell: chạy `.\install.ps1` (không cần quyền Administrator).
 
-Script tạo symlink từ `skills/*` vào `~/.claude/skills/` và `~/.agents/skills/`
-(thư mục dùng chung cho Codex / Copilot CLI / Gemini CLI). Muốn thêm đích khác,
-sửa mảng `TARGETS` trong script hoặc đặt skill trực tiếp vào `.claude/skills/` của dự án.
+Script tạo symlink (Windows: junction) từ `skills/*` vào hai thư mục cấp người dùng.
+Hai thư mục này đủ cho cả 5 agent:
 
-Sau khi cài, mở session mới và hỏi thử: *"Theo TCVN 11823, hệ số xung kích cho mối nối
+| Agent | Thư mục skill cấp người dùng mà agent đọc | Kiểm tra đã nhận skill |
+|---|---|---|
+| Claude Code | `~/.claude/skills/` | gõ `/` hoặc hỏi thử (bên dưới) |
+| Codex (CLI / IDE / app) | `~/.agents/skills/` | hỏi thử |
+| Gemini CLI | `~/.agents/skills/` (alias của `~/.gemini/skills/`) | `/skills` hoặc `gemini skills list` |
+| GitHub Copilot CLI | `~/.agents/skills/` (hoặc `~/.copilot/skills/`) | `/skills list` (hoặc `/skills reload` nếu đang mở) |
+| OpenCode | `~/.agents/skills/` và `~/.claude/skills/` | hỏi thử |
+
+OpenCode đọc cả hai thư mục nên thấy skill hai lần. Cả hai bản trỏ về cùng một thư mục
+trong repo nên nội dung giống hệt, không ảnh hưởng.
+
+Chỉ muốn dùng cho một dự án: copy hoặc symlink `skills/thiet-ke-cau-11823` vào
+`.agents/skills/` (Codex, Gemini, Copilot, OpenCode) hoặc `.claude/skills/` (Claude Code)
+trong dự án đó. Muốn thêm đích khác cho cài đặt toàn máy, sửa mảng `TARGETS` trong script.
+
+Sau khi cài, **mở session mới** và hỏi thử: *"Theo TCVN 11823, hệ số xung kích cho mối nối
 bản mặt cầu là bao nhiêu?"* — agent phải tự nạp skill và trả lời 75% kèm số điều khoản.
+Hỏi tiếp *"Tính mô men HL-93 cho dầm giản đơn nhịp 30 m"* — agent phải chạy
+`bridge_calc.py` (xe tải ≈ 2 055.9 kN·m, làn ≈ 1 044.9 kN·m) chứ không tự nhẩm.
+
+Gỡ cài: `./install.sh --uninstall` hoặc `.\install.ps1 -Uninstall` (chỉ xóa liên kết,
+không xóa repo).
 
 ## Cấu trúc repo
 
@@ -29,9 +54,14 @@ vn-bridge-skills/
 └── skills/
     └── thiet-ke-cau-11823/    # skill bao quát (bản nháp test)
         ├── SKILL.md           # quy trình + nguyên tắc + bẫy thường gặp
-        └── references/
-            └── he-so-co-ban.md  # hệ số TCVN 11823-3:2017 đã đối chiếu bản gốc
+        ├── references/
+        │   └── he-so-co-ban.md  # hệ số TCVN 11823-2/3:2017 đã đối chiếu bản gốc
+        └── scripts/
+            ├── bridge_calc.py       # HL-93, tổ hợp tải, độ võng (Python 3, không phụ thuộc)
+            └── test_bridge_calc.py  # so với tính tay + kiểm hệ số khớp references
 ```
+
+Chạy test: `python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts`
 
 ## Skill hiện có
 

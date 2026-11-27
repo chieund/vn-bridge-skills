@@ -46,25 +46,49 @@ Thiếu thì **liệt kê đúng các mục còn thiếu và hỏi lại** — k
 ## 4. Trình tự tính toán sơ bộ
 
 1. **Tĩnh tải:** `DC` = tự trọng kết cấu (trừ bì theo thực tế mặt cắt), `DW` = lớp phủ
-   (thường BTN 50–80 mm × 24 kN/m³); hệ số γ theo Bảng 4 (`references`).
-2. **Hoạt tải HL-93:** đặt xe tải thiết kế / xe hai trục + tải làn theo mục B của
+   (thường BTN 50–80 mm × 24 kN/m³); hệ số γ theo Bảng 4 (`references`, mục B).
+2. **Hoạt tải HL-93:** đặt xe tải thiết kế / xe hai trục + tải làn theo mục C của
    `references`; chọn tổ hợp bất lợi nhất (kể cả trường hợp 90% hai xe cho mô men âm);
-   nhân hệ số làn `m`; nhân `(1 + IM/100)` cho phần **xe**, không nhân cho phần **làn**.
-3. **Tổ hợp tải trọng:** dùng γ theo Bảng 3 (`references`, mục E). Ghi rõ tên TTGH.
+   nhân hệ số làn `m` (mục E — không nhân nếu đã dùng hệ số phân bố gần đúng);
+   nhân `(1 + IM/100)` cho phần **xe**, không nhân cho phần **làn** (mục D).
+3. **Tổ hợp tải trọng:** dùng γ theo Bảng 3 (`references`, mục A). Ghi rõ tên TTGH.
 4. **Kiểm tra điều kiện thường dùng:** độ võng hoạt tải (mục F `references`),
    bề rộng vết nứt / ứng suất sử dụng — nếu ngoài phạm vi thì nói rõ.
 5. Luôn kèm **bảng tóm tắt** cuối kết quả (hạng mục | giá trị | nguồn điều khoản | ĐẠT/KHÔNG ĐẠT).
+
+### Công cụ tính — KHÔNG tự nhẩm số
+
+Mọi con số ra kết quả phải chạy qua `scripts/bridge_calc.py` (Python 3, không cần cài thêm).
+Đường dẫn `scripts/` tính từ **thư mục chứa file SKILL.md này** — nếu đang đứng ở thư mục
+khác thì dùng đường dẫn tuyệt đối. Windows: dùng `python` hoặc `py` nếu không có `python3`.
+Dán nguyên phần in ra vào thuyết minh:
+
+```bash
+python3 scripts/bridge_calc.py hl93 --L 30                       # M, V do HL-93, dầm giản đơn, 1 làn
+python3 scripts/bridge_calc.py combine --limit-state str1 \
+        --dc 420 --dw 180 --truck 250 --lane 80 --m 0.6 --resistance 2050
+python3 scripts/bridge_calc.py deflection --L 30 --EI 2.5e7 --g 0.5   # võng so với L/800
+```
+
+- `--limit-state`: `str1` Cường độ I, `ser1`/`ser3` Sử dụng I/III, `fat1`/`fat2` Mỏi I/II.
+- `--truck` là nội lực do xe **chưa nhân IM**; script tự nhân IM cho xe, không nhân cho làn.
+- `--m`: hệ số làn, hoặc hệ số phân bố g (đã chứa m); `--lanes N` để tra m theo Bảng 7.
+- Ngoài phạm vi script (dầm liên tục, hệ số phân bố ngang, gió, động đất...) → nói rõ,
+  không tự tính tay rồi trình bày như kết quả đã kiểm.
 
 ## 5. Định dạng thuyết minh đầu ra
 
 Mỗi phép tính trình bày 4 dòng:
 
 ```
-Công thức:  Mu = η·[γDC·MDC + γDW·MDW + γ(LL+IM)·M(HL93)·(1+IM/100)·m]
-Thay số:    Mu = 1.0 × [1.25×420 + 1.50×180 + 1.75×350×1.33×1.0]
-Kết quả:    Mu = 1 604 kN·m
+Công thức:  Mu = η·[γDC·MDC + γDW·MDW + γLL·m·(Mxe·(1 + IM/100) + Mlàn)]
+Thay số:    Mu = 1.0 × [1.25×420 + 1.50×180 + 1.75×1.0×(250×1.33 + 80)]
+Kết quả:    Mu = 1 516.9 kN·m
 Kết luận:   φMn = 2 050 kN·m ≥ Mu → ĐẠT
 ```
+
+`Mxe` = mô men do xe tải/tandem thiết kế (nhân IM); `Mlàn` = mô men do tải làn 9,3 kN/m
+(**không** nhân IM). Không gộp hai thành phần rồi mới nhân `(1 + IM/100)`.
 
 Văn phong: ngắn, ngôi không xưng hô, số thập phân dùng dấu chấm, đơn vị sau trị số,
 mỗi bảng có tên ("Bảng X.Y – ..."). Cuối thuyết minh luôn có bảng tổng hợp đạt/không đạt.
@@ -84,7 +108,7 @@ mỗi bảng có tên ("Bảng X.Y – ..."). Cuối thuyết minh luôn có b�
 ## 7. Nguồn và giới hạn
 
 - Nguồn khóa số liệu: **TCVN 11823-3:2017** (Phần 3 — Tải trọng và hệ số tải trọng,
-  http://www.nhatnguyen.vn/media/ftp/TCVN11823-3_2017_916997.pdf) và
+  https://cokhicongtrinh.com.vn/upload/files/TCVN%2011823_Phan%203_Tai-trong-va-he-so-tai-trong.pdf) và
   **TCVN 11823-2:2017 Điều 5.2.6.2** (giới hạn võng).
 - Các Phần khác của bộ 11823 (5-kết cấu bê tông, 11-mố trụ, 12-kết cấu vùi...) chưa đưa
   hệ số vào bản nháp này → hỏi tới đâu thành thật tới đó.

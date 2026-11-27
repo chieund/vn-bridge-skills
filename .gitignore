@@ -7,3 +7,10 @@ tmp/
 
 # Ban doan chay thu (khong commit ket qua sinh ra)
 out/
+
+# Python
+__pycache__/
+
+# Ban PDF tieu chuan (ban quyen) — chi giu o may, khong commit
+standards/
+*.pdf

@@ -1,0 +1,5 @@
+# Luon dung LF de install.sh / python chay duoc ke ca khi core.autocrlf=true
+* text=auto eol=lf
+# PowerShell tren Windows de CRLF
+*.ps1 text eol=crlf
+*.pdf binary
