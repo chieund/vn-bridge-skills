@@ -35,9 +35,20 @@ Hai thư mục này đủ cho cả 5 agent:
 OpenCode đọc cả hai thư mục nên thấy skill hai lần. Cả hai bản trỏ về cùng một thư mục
 trong repo nên nội dung giống hệt, không ảnh hưởng.
 
-Chỉ muốn dùng cho một dự án: copy hoặc symlink `skills/thiet-ke-cau-11823` vào
+Muốn dùng riêng cho một dự án: copy hoặc symlink `skills/thiet-ke-cau-11823` vào
 `.agents/skills/` (Codex, Gemini, Copilot, OpenCode) hoặc `.claude/skills/` (Claude Code)
 trong dự án đó. Muốn thêm đích khác cho cài đặt toàn máy, sửa mảng `TARGETS` trong script.
+
+Repo nhiều mảng (sau này thêm đường, thủy lợi, dân dụng…): truyền tên skill để cài chọn lọc.
+
+```bash
+./install.sh --list                    # xem skill có trong repo (Windows: .\install.ps1 -List)
+./install.sh thiet-ke-cau-11823        # chỉ skill này (Windows: .\install.ps1 -Only thiet-ke-cau-11823)
+```
+
+Không truyền tên = cài tất cả — cũng chẳng nặng: khi câu hỏi chưa khớp, agent chỉ "thấy"
+tên + description của mỗi skill; nội dung đầy đủ chỉ nạp lúc kích hoạt. Nhiều skill cài
+sẵn không làm session chậm đi.
 
 Sau khi cài, **mở session mới** và hỏi thử: *"Theo TCVN 11823, hệ số xung kích cho mối nối
 bản mặt cầu là bao nhiêu?"* — agent phải tự nạp skill và trả lời 75% kèm số điều khoản.
@@ -53,9 +64,9 @@ không xóa repo).
 |---|---|---|
 | `thiet-ke-cau-11823` | Tra cứu hệ số, tính sơ bộ tải trọng/kích thước, hệ số phân bố hoạt tải g (Phần 4), soạn đoạn thuyết minh theo TCVN 11823 | Bản nháp |
 
-Dự kiến tách khi bản nháp ổn định: `cau-tai-trong-11823` (tải & tổ hợp chi tiết),
-`cau-kiem-toan-dam` (dầm BTCT/DƯL, Phần 5), `cau-mo-tru-coc` (Phần 10–11),
-`cau-thuyet-minh` (xuất hồ sơ thuyết minh).
+Nguyên tắc tổ chức: **một chuẩn = một skill** — trọn TCVN 11823 (các Phần 2→14) nằm trong
+`thiet-ke-cau-11823`, phân Phần ở cấp `references/`, không tách theo Phần. Chỉ tách khi một
+thành phần thật sự dùng chéo nhiều mảng (ví dụ khuôn thuyết minh → `cau-thuyet-minh`).
 
 ## Nguyên tắc của bộ skill
 
@@ -71,7 +82,8 @@ Dự kiến tách khi bản nháp ổn định: `cau-tai-trong-11823` (tải & t
      không tách hai họ chồng nhau), `kientruc-`... Một mảng = một tiền tố.
    - Mã chuẩn: TCVN lấy số không (`cau-11823`); QCVN giữ nhãn (`kientruc-qcvn06`).
    - **Mỗi chuẩn một skill riêng** — không gộp nhiều chuẩn vào một skill (số liệu dễ lẫn
-     giữa chuẩn, như BTCT cầu 11823-5 vs BTCT dân dụng 5574).
+     giữa chuẩn, như BTCT cầu 11823-5 vs BTCT dân dụng 5574). Ngược lại, một chuẩn (kể cả
+     bộ nhiều phần như TCVN 11823-1→-14) giữ trong MỘT skill, phân phần ở cấp `references/`.
 
 ## Cập nhật
 

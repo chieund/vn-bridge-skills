@@ -36,7 +36,7 @@ Trước khi trả lời, xác định câu hỏi thuộc dòng nào và **đọ
 | Soạn / định dạng đoạn thuyết minh, văn phong hồ sơ | `references/thuyet-minh.md` | chạy lệnh tính trước, dán kết quả vào khuôn 4 dòng |
 
 Bài toán ngoài phạm vi bản nháp (động đất chi tiết, móng cọc chi tiết, dây văng, đúc hẫng...)
-→ nói rõ ngoài phạm vi; gợi ý tách skill chuyên sâu (xem mục 7).
+→ nói rõ ngoài phạm vi; hướng dẫn tra bản chuẩn hoặc dùng công cụ chuyên sâu (xem mục 7).
 
 ## 3. Kiểm tra đầu vào trước khi tính
 
@@ -135,5 +135,8 @@ Số liệu của từng Phần nằm trong file tham chiếu riêng (bảng đ�
   tới đó.
 - **Phần 10, 11, 14** (móng, mố trụ, gối khe) chưa đưa hệ số vào bản nháp này (đang mở rộng)
   → hỏi tới đâu thành thật tới đó.
-- Lộ trình tách skill chuyên sâu khi bản nháp ổn định: `cau-tai-trong-11823`,
-  `cau-kiem-toan-dam`, `cau-mo-tru-coc`, `cau-thuyet-minh`.
+- Tổ chức: **một chuẩn = một skill** — trọn TCVN 11823 (Phần 2→14) giữ trong skill này,
+  phân Phần ở cấp `references/` + bảng định tuyến mục 2; KHÔNG tách theo Phần (hai skill
+  cùng từ khóa cầu/HL-93 sẽ tranh kích hoạt, và người dùng chọn theo mảng chứ không theo
+  Phần). Chỉ tách khi có thành phần dùng chéo mảng thật sự — ví dụ khuôn thuyết minh
+  thành `cau-thuyet-minh` khi repo có thêm mảng đường/thủy.
