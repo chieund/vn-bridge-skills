@@ -220,3 +220,38 @@ def flexure(fpc: float, bw: float, ds=None, As: float = 0.0, fy=None, *,
 
     return FlexResult(Mn=Mn, phi=phi, Mr=phi * Mn, c=c, a=a, eps_t=eps_t,
                       fps=fps, mode=mode, notes=tuple(notes) + (f"nguồn φ: {src}",))
+
+# ---- Điều 4.2 (tr.24-25) & 7.3.3 (tr.45-46) ---------------------------------------
+GAMMA1 = {"precast": 1.2, "cast-in-place": 1.6}      # pt (33) bản in tr.46
+GAMMA2 = {"bonded": 1.1, "unbonded": 1.0}
+GAMMA3 = {"A615-420": 0.67, "A706-420": 0.75, "PS": 1.0}
+
+
+def mcr(fpc: float, Sc: float, Mdnc: float, *, Snc: float | None = None,
+        fcpe: float = 0.0, gamma1: str = "cast-in-place",
+        gamma2: str = "bonded", gamma3: str = "cast-in-place-A") -> float:
+    """Mômen nứt đầu tiên quy ước Mcr — pt (33) tr.45 (N.mm).
+
+    fr lấy theo Điều 4.2.6 bê tông thường 0,63·√f'c (không phải 0,52 — dòng
+    0,52 chỉ cho Mcre Điều 8.3.4.3). gamma3 bản in chỉ liệt kê A615/A706/PS;
+    giá trị 'cast-in-place-A' CHƯA phi en — caller phai truyen cu the.
+    """
+    import math as _m
+    if gamma3 == "cast-in-place-A":
+        raise ValueRange("pt (33): ban in chi ghi gamma3 = 0,67 (A615 cap 420), "
+                         "0,75 (A706 cap 420), 1,0 (thep DƯL) — chuyen loai thep cu the")
+    fr = 0.63 * _m.sqrt(fpc)
+    if Snc is None:
+        Snc = Sc                       # dam nguyen khoi/khong lien hop: Snc = Sc (tr.45)
+    g1 = GAMMA1[gamma1]
+    g2 = GAMMA2[gamma2]
+    g3 = GAMMA3[gamma3]
+    return g3 * ((g1 * fr + g2 * fcpe) * Sc - Mdnc * (Sc / Snc - 1.0))
+
+
+def as_min_required(Mu: float, Mcr: float) -> float:
+    """Ngưỡng Mr tối thiểu — Điều 7.3.3 tr.45: Mr ≥ min(1,33·Mu, Mcr).
+
+    Mu: momen tính toán ULS (N.mm) — Bảng 3 Phần 3. Mcr: N.mm.
+    """
+    return min(1.33 * Mu, Mcr)

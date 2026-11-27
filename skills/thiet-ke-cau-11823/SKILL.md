@@ -32,7 +32,7 @@ Trước khi trả lời, xác định câu hỏi thuộc dòng nào và **đọ
 |---|---|---|
 | Hệ số Phần 2–3: tải HL-93, IM, hệ số làn m, γ tổ hợp, lực hãm BR / ly tâm CE / gió, giới hạn võng | `references/phan-2-3-tai-trong.md` | `hl93`, `combine`, `deflection` |
 | Phân bố hoạt tải cho từng dầm (g mô men / lực cắt, dầm giữa / dầm biên, cầu chéo, dầm ngang, dải tương đương cầu bản), xe quá tải cấp phép | `references/phan-4-phan-bo.md` | `dist`, `special` |
-| Kết cấu bê tông Phần 5: hệ số sức kháng φ theo chế độ phá hoại, φ cắt/xoắn theo loại bê tông, giới hạn biến dạng εcu/εcl/εtl, khối chữ nhật α1/β1, lực kháng uốn BTCT & DƯL (pt 23-32), ngưỡng mỏi (ΔF)TH mối nối cáp DƯL | `references/phan-5-betong.md` | `flexure` |
+| Kết cấu bê tông Phần 5: hệ số sức kháng φ theo chế độ phá hoại, φ cắt/xoắn theo loại bê tông, giới hạn biến dạng εcu/εcl/εtl, khối chữ nhật α1/β1, vật liệu Ec/fr/Es (Điều 4.2/4.3), lực kháng uốn BTCT & DƯL (pt 23-32), lực cắt Điều 8.3 (4 phương pháp + Bảng 4), Mcr/As,min, khống chế nứt s, ngưỡng mỏi (ΔF)TH mối nối cáp DƯL | `references/phan-5-betong.md` | `flexure`, `shear`, `mcr` |
 | Soạn / định dạng đoạn thuyết minh, văn phong hồ sơ | `references/thuyet-minh.md` | chạy lệnh tính trước, dán kết quả vào khuôn 4 dòng |
 
 Bài toán ngoài phạm vi bản nháp (động đất chi tiết, móng cọc chi tiết, dây văng, đúc hẫng...)
@@ -81,6 +81,10 @@ python3 scripts/bridge_calc.py dist --kind moment --place interior --section k \
 python3 scripts/bridge_calc.py special --Gp 640000 --GD 1.2e6 --g1 0.65 --gm 0.75   # xe quá tải
 python3 scripts/bridge_calc.py flexure --fc 35 --bw 200 --b 1200 --hf 150 \
         --ds 900 --As 15000 --fy 420                       # Mr = φMn — Phần 5, Điều 7.3.2
+python3 scripts/bridge_calc.py shear --method simple --fc 35 --bv 300 --dv 700 \
+        --Av 400 --s 150 --fy 420 --Vu 400        # Vr = φVn — Điều 8.3 (simple|general-a|general-b|simplified)
+python3 scripts/bridge_calc.py mcr --fc 35 --Sc 5.4e6 --Mdnc 900 --gamma3 A706-420 \
+        --Mu 1200 --Mr 2100                              # Mcr pt(33) + ngưỡng As,min — Điều 7.3.3
 ```
 
 - `--limit-state`: `str1` Cường độ I, `ser1`/`ser3` Sử dụng I/III, `fat1`/`fat2` Mỏi I/II.
@@ -130,8 +134,12 @@ Số liệu của từng Phần nằm trong file tham chiếu riêng (bảng đ�
 - **Phần 5** — TCVN 11823-5:2017: đã khóa φ (Điều 5.4.2.1, tr.30–31), giới hạn biến dạng +
   khối chữ nhật α1/β1 (Điều 7.2.2, tr.39–40), mỏi mối nối DƯL (Bảng 2, tr.30), **lực kháng uốn
   Điều 7.3.1–7.3.2** (tr.40–45, lệnh `flexure`), As,min (Điều 7.3.3, tr.45–46), khống chế nứt
-  s (Điều 7.3.4, tr.46) trong `references/phan-5-betong.md`. CHƯA khóa: fr (4.2.6) → As,min
-  chưa tính được Mcr; lực cắt Điều 8.3; tương thích ứng biến (cần Es). Hỏi tới đâu soi bản gốc
+  s (Điều 7.3.4, tr.46), **vật liệu Điều 4.2.4/4.2.5/4.2.6/4.3.2** (tr.24–25: Ec pt(8),
+  fr 0,63/0,52/0,45√f'c, Es=2·10⁵ — đợt 3), **lực cắt Điều 8.3** (tr.60–72: 4 phương pháp
+  8.3.4.1/(2a)/(2b-Bảng 4)/8.3.4.3 Vci-Vcw, lệnh `shear` + `mcr`, Bảng 4 chép nguyên văn);
+  **7 điểm đối chiếu ngẫu nhiên đã soi xong**, sai lệch thuật ngữ mục φ đã sửa theo bản in —
+  xem `references/phan-5-betong.md` mục K. CHƯA khóa: Bảng 5 từng ô, xoắn 8.3.6, ma sát mặt
+  tiếp xúc 8.4, đường cong σ–ε bê tông 7.2.1 (tương thích ứng biến). Hỏi tới đâu soi bản gốc
   tới đó.
 - **Phần 10, 11, 14** (móng, mố trụ, gối khe) chưa đưa hệ số vào bản nháp này (đang mở rộng)
   → hỏi tới đâu thành thật tới đó.

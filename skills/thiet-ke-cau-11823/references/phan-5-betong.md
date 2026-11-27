@@ -1,11 +1,14 @@
-# Phần 5 — Kết cấu bê tông (TCVN 11823-5:2017): đợt khóa đầu tiên
+# Phần 5 — Kết cấu bê tông (TCVN 11823-5:2017)
 
-> Số liệu **chép từ ảnh trang** bản gốc (150 dpi), trang in = trang PDF + 1. Nguồn PDF cục bộ,
+> Số liệu **chép từ ảnh trang / text trích** bản gốc, trang in = trang PDF + 1. Nguồn PDF cục bộ,
 > https://cokhicongtrinh.com.vn/upload/files/TCVN%2011823_Phan%205_Ket-cau-be-tong.pdf
 > (192 trang). Đơn vị: **MPa, mm, biến dạng mm/mm**.
 > Đã khóa: φ sức kháng (tr.30–31); giới hạn biến dạng + khối ứng suất chữ nhật (tr.39–40);
 > ngưỡng mỏi mối nối DƯL — Bảng 2 (tr.30); **đợt 2:** lực kháng uốn Điều 7.3.1–7.3.2
-> (tr.40–45), cốt thép tối thiểu Điều 7.3.3 (tr.45–46), khống chế nứt Điều 7.3.4 (tr.46).
+> (tr.40–45), cốt thép tối thiểu Điều 7.3.3 (tr.45–46), khống chế nứt Điều 7.3.4 (tr.46);
+> **đợt 3 (2026-11-28):** vật liệu Điều 4.2.4/4.2.5/4.2.6/4.3.2 (tr.24–25), lực cắt Điều 8.2.5/
+> 8.2.7/8.2.9 + 8.3.3/8.3.4/8.3.5 (tr.60–72) kèm Bảng 4 chép nguyên văn, **7 điểm đối chiếu
+> ngẫu nhiên đã soi xong** (kết quả ở mục K cuối file).
 > Các Điều khác của Phần 5 CHƯA khóa —
 > hỏi tới đâu tra bản gốc tới đó, không suy diễn.
 > ⚠ Lưu ý nguyên tắc: giá trị dưới đây lấy THEO BẢN IN TCVN, kể cả khi khác trí nhớ về
@@ -17,8 +20,8 @@
 
 | Trường hợp | φ |
 |---|---|
-| Mô men / lực dọc — mặt cắt bê tông cốt thép **không khống chế kéo** (theo Điều 7.2.1) | **0,90** |
-| Mô men / lực dọc — mặt cắt bê tông cốt thép **dự ứng lực không khống chế kéo** (theo Điều 7.2.1) | **1,00** ⚠ (đúng bản in; khớp cận trên của pt (12)) |
+| Mô men / lực dọc — mặt cắt bê tông cốt thép **khống chế kéo** (theo Điều 7.2.1) | **0,90** |
+| Mô men / lực dọc — mặt cắt bê tông cốt thép **dự ứng lực khống chế kéo** (theo Điều 7.2.1) | **1,00** ⚠ (đúng bản in; khớp cận trên của pt (12)) |
 | Chịu cắt và xoắn — bê tông thường | **0,90** ⚠ (đúng bản in; khác 0,85 hay nhớ từ AASHTO ấn bản khác) |
 | Chịu cắt và xoắn — bê tông nhẹ | **0,80** ⚠ |
 | Mặt cắt **khống chế nén** có cốt thép xoắn hoặc cốt đai móc theo Điều 7.2.1 (trừ quy định Điều 10.11.3, 10.11.4.1.2 cho động đất vùng 2, 3 ở TTGH đặc biệt) | **0,75** |
@@ -29,7 +32,7 @@
 | Sức kháng khi đóng cọc | **1,00** |
 
 - Mặt cắt có biến dạng kéo thực εt nằm giữa εcl và εtl: φ **nội suy tuyến tính** từ 0,75
-  tới giá trị không khống chế kéo (bản in tr.31).
+  tới giá trị khống chế kéo (bản in tr.31).
 - Với cấu kiện **dự ứng lực**: `0,75 ≤ φ = 0,75 + 0,25·(εt − εcl)/(εtl − εcl) ≤ 1,0` — pt (12).
 - Với cấu kiện **không dự ứng lực**: `0,75 ≤ φ = 0,75 + 0,15·(εt − εcl)/(εtl − εcl) ≤ 0,9` — pt (13).
 - Bố trí nhiều loại thép có fy khác nhau: dùng **φ nhỏ nhất theo từng loại cốt thép** (tr.31).
@@ -146,27 +149,104 @@ sử dụng Bảng 3 Phần 3. Khoảng cách lớp thép gần mặt chịu ké
 - fss = ứng suất kéo thép thường ở TTGH sử dụng, **không vượt 0,60·fy** (MPa);
 - h = tổng độ dày hoặc chiều sâu cấu kiện (mm).
 
+## I. Vật liệu — Điều 4.2/4.3 (tr.24–25) — đợt 3
+
+- **Ec — pt (8) tr.24**: `Ec = 0,0017·K₁·wc²·(f'c)^0,33` (MPa; wc kg/m³ 1440–2500,
+  f'c tới 105 MPa; K₁ = 1,0 trừ khi thí nghiệm cốt liệu được duyệt). Vd: f'c 35, wc 2400
+  → Ec ≈ 36 200 MPa (lệnh `material` chưa có — tính tay theo pt).
+- **4.2.2**: không có số đo → `f'ci = 0,80·f'c` tại tuổi đặt tải ban đầu (tr.24).
+- **Hệ số Poisson 4.2.5**: 0,20 — bê tông nhẹ tới 70 MPa, thường tới 105 MPa; kết cấu
+  nứt: không xét Poisson (tr.24).
+- **fr — Điều 4.2.6 tr.25** (tới 105 MPa, khi chưa có thí nghiệm AASHTO T 97):
+
+  | Trường hợp | fr |
+  |---|---|
+  | Bê tông thường (dùng chung, gồm ngưỡng 80% ở 7.3.4) | **0,63·√f'c** |
+  | Bê tông thường — **khi tính mômen nứt cho Điều 8.3.4.3** | **0,52·√f'c** |
+  | Bê tông nhẹ cát thường | 0,52·√f'c |
+  | Bê tông nhẹ toàn phần | 0,45·√f'c |
+
+- **Es — Điều 4.3.2 tr.25**: 200 000 MPa cho thép tới 690 MPa.
+- 4.3.1: thiết kế bình thường **không dùng fy > 520 MPa**; tới 690 MPa chỉ theo Điều 4.3.3
+  (và kéo theo φ cắt đổi? — KHÔNG, φ bảng A giữ; chỉ ghi điều kiện 5.4.2.1 áp dụng tới 690).
+
+## J. Lực cắt — Điều 8.2.5/8.2.7/8.2.9 + 8.3 (tr.60–72) — đợt 3
+
+Đơn vị N, mm, MPa; `shear` nội bộ N, in ra kN. φ cắt theo bảng A (0,90 thường / 0,80 nhẹ).
+
+- **8.2.5 Av,min**: `Av ≥ 0,083·(√f'c/fy)·bv·s` — pt (66) (fy ≤ 690). Hộp DƯL phân đoạn:
+  `Av ≥ 0,35·bw·s/fy` — pt (67) (tr.60).
+- **8.2.7 smax**: νu < 0,125√f'c → `s ≤ 0,8dv ≤ 600`; νu ≥ → `s ≤ 0,4dv ≤ 300` — pt (68)(69).
+  Hộp phân đoạn: đai kín chịu xoắn ≤ 1/2 kích thước ngắn nhất mặt cắt và ≤ 300 mm (tr.60).
+- **νu — pt (70) tr.62**: `νu = (Vu/φ − Vp)/(bv·dv)`; **dv ≥ max(0,9de; 0,72h)**;
+  de = (As·fy·ds + Ap·fpy·dp)/(As·fy + Ap·fpy) — pt (71). trừ ống bọc: −1/2 D ống không
+  bơm vữa, −1/4 D ống bơm vữa (tr.62).
+- **8.3.3**: `Vn = Vc + Vs + Vp` pt (72); **trần** `Vn ≤ 0,25·√f'c·bv·dv + Vp` pt (73);
+  `Vc = 0,083·β·√f'c·bv·dv` pt (74); `Vs = Av·fy·(cotθ + cotα)·dv/s` pt (75);
+  thép dọc uốn chờm: `Vs = Av·fy·sinα ≤ 0,25√f'c·bv·dv` pt (76) (tr.64–65).
+- **8.3.4.1 đơn giản** (không DƯL, không kéo dọc, đủ đai min, hoặc h < 400 mm):
+  β = 2,0; θ = 45° (tr.65).
+- **8.3.4.2(a) tổng quát** (tr.65–67): có đai min: `β = 4,8/(1 + 750·εs)` pt (77);
+  không đủ đai min: `β = 4,8/(1+750εs) · 51/(39 + Sxe)` pt (78); `θ = 29 + 3500·εs` (độ)
+  pt (79); `εs = (|Mu|/dv + 0,5Nu + 0,5|Vu − Vp| − Aps·fpo)/(Es·As + Ep·Aps)` pt (80);
+  `Sxe = 35·Sx/(ag + 16)`, chặn 294–2000 mm, pt (81) (tr.66).
+  Lưu ý bản in tr.66–67: |Mu| không nhỏ hơn |Vu − Vp|·dv; εs ≤ 6,0·10⁻³; εs âm → mẫu số
+  cộng thêm Ec·Ac, không lấy dưới −0,40·10⁻³; cách mặt gối < dv thì lấy εs tại dv; kéo dọc
+  làm nứt mặt nén → εs nhân 2; thép cắt ngắn hơn ld → trừ theo tỉ lệ.
+- **8.3.4.2(b)**: tra **Bảng 4** tr.70 (ô = θ/β, KHÔNG nội suy — lấy đúng ô chặn trên):
+  hàng **vu/f'c** 0,075–0,250 với **vu = Vu/(bv·dv)** (ứng suất cắt MPa — tỉ số KHÔNG thứ
+  nguyên; bản in ghi "Vu/f'c" dễ đọc nhầm thành Vu thô — đối chiếu bảng nguồn AASHTO SI
+  Table 5.8.3.4.2-1 đã xác nhận); cột εx·1000 từ −0,20 tới 1,00. Bảng 4 nguyên văn đã vào
+  `rc_shear.B4_ROWS` (test ô gốc 22,3/6,32 và giữa 25,9/2,74 khớp ảnh in).
+  εx: pt (82) đủ đai min (≤0,001), pt (83) thiếu đai min (≤0,002), εx âm → pt (84)
+  (mẫu số +2Ec·Ac); Sxe cho Bảng 5: pt (85). **Bảng 5 chưa phiên trọn ô số.**
+- **8.3.4.3 đơn giản hóa** (DƯL & không DƯL, đủ đai min, không kéo dọc lớn): Vp = 0,
+  θ = 45° (Vci<Vcw → cotθ=1,0; Vci>Vcw → `cotθ = 1,0 + 3·fpc/√f'c ≤ 1,8` pt (89));
+  `Vc = nhỏ hơn của Vci, Vcw`:
+  `Vci = 0,0525·√f'c·bv·dv + Vd + Vi·Mcre/Mmax ≥ 0,16·√f'c·bv·dv` pt (86) ⚠ hệ số
+  0,0525 lấy đúng bản in;
+  `Mcre = Sc·(fr + fcpe + Mdnc/Snc)` pt (87) **với fr = 0,52·√f'c** (dòng riêng Điều 4.2.6);
+  `Vcw = (0,16·√f'c + 2,09·fpc)·bv·dv + Vp` pt (88) — bản in (PDF trang 71) ghi 2,09·fpc;
+  fpc nén sau mọi mất mát tại trọng tâm (dương nén); Vd tĩnh tải không nhân hệ số (DC+DW),
+  Vi lực cắt đồng thời Mmax đã nhân hệ số.
+- **8.3.5 cốt thép dọc** (tr.72): `As·fy + Aps·fps ≥ |Mu|/(dv·φf) + 0,5Nu/φc +
+  (|Vu/φv − Vp| − 0,5Vs)·cotθ` pt (90) (Vs lấy theo pt (75) nhưng ≤ Vu/φv); vùng mép gối
+  tới mặt cắt cắt nguy hiểm: pt (91); dầm giản đơn liên tục phải kiểm tra pt (90).
+- **Chưa phiên**: 8.3.6 xoắn (pt 92–94), 8.4 ma sát mặt tiếp xúc (pt 95–99), 8.5/8.6 vùng
+  gối & hộp phân đoạn, Bảng 5 từng ô.
+- Script: `shear --method simple|general-a|general-b|simplified` + `mcr`
+  (test: test_rc_shear.py — 25 ca).
+
+## K. Kết quả soi đối chiếu 7 điểm (2026-11-28, đợt 3)
+
+| # | Điểm | Kết luận |
+|---|---|---|
+| 1 | φ DƯL tr.30–31 | φ=**1,00** đúng; **sửa thuật ngữ**: bản in ghi "mặt cắt **khống chế kéo**" (không phải "không khống chế kéo" như chép đợt 1) — mục A đã sửa theo in; cận trên pt (12)=1,0 khớp |
+| 2 | φ cắt 0,90 / nhẹ 0,80 (tr.31) | ✅ khớp text trích |
+| 3 | εcl 0,002 / εtl 0,005 (tr.39) | ✅ khớp ảnh in (kể cả dùng lẫn εd/εtl); εtl 690 MPa=0,008 ✅ |
+| 4 | Bảng 2 dòng 84 MPa (tr.30) | ✅ đủ 4 nhóm (ép nguội không ren; ren thô NC chôn đầu + măng sông thép có nêm; ống ren đầu vát taper; hàn đối đầu V đơn); ghi chú TCVN 8163:2009 ✅ |
+| 5 | pt (24) k=2(1,04−fpy/fpu); mẫu pt (25) (tr.41) | ✅ cả hai, đọc từ ảnh 200 dpi |
+| 6 | pt (32) dấu (tr.43) | ✅ `− A's·f's(d's − a/2)` và `+ α1f'c(b−bw)hf(a/2 − hf/2)` — file ghi đúng |
+| 7 | γ3 0,67/0,75/1,0; βs mẫu 0,7(h−dc) (tr.46) | ✅ text trích khớp |
+
+Hệ quả: mục G dùng `fr = 0,63√f'c` cho Mcr(7.3.3); lệnh `mcr` đã bật tính được As,min.
+
 ## E. Quy ước dùng cho skill
 
 - tra φ: xác định chế độ phá hoại (so εt với εcl, εtl) → bảng A; cắt/xoắn dùng φ theo loại bê tông.
 - kiểm toán uốn: lệnh `bridge_calc.py flexure ...` (đơn vị MPa/mm, ra kN·m; pt (31) nội bộ dùng N.mm).
-- kiểm tra As,min (mục G): script CHƯA tính được vì **fr (Điều 4.2.6) chưa phiên** — báo cáo
-  flexure in nhắc tương ứng; nhờ người dùng cung cấp fcr đo thí nghiệm hoặc chờ đợt phiên mục 4.2.
-- khi trích φ / fps / hệ số γ vào hồ sơ, ghi rõ điều khoản + trang (mục A/F/G/H).
-- đợt khóa tiếp theo dự kiến: Điều 4.2.4 (Ec, khối lượng riêng), Điều 4.2.6 (fr), Điều 8.3
-  (lực cắt Vc/Vs), bề rộng cánh hiệu dụng (bên Phần 4 — Điều 6.2.6 đã dẫn ở mục F).
+- kiểm toán cắt: lệnh `bridge_calc.py shear --method ...` (4 phương pháp Điều 8.3; εs/εx do
+  người dùng truyền — script chưa tự phân tích nội lực mặt cắt).
+- kiểm tra As,min (mục G): đã bật từ đợt 3 — lệnh `bridge_calc.py mcr --gamma3 ...` tính
+  Mcr pt (33) với **fr = 0,63√f'c** (Điều 4.2.6 dòng chung); so Mr ≥ min(1,33·Mu; Mcr).
+- khi trích φ / fps / hệ số γ / β θ / fr vào hồ sơ, ghi rõ điều khoản + trang (mục A/F/G/H/I/J).
+- đợt khóa tiếp theo dự kiến: 8.3.4.2(b) **Bảng 5** từng ô, 8.3.6 xoắn, 8.4 ma sát mặt
+  tiếp xúc (pt 95–99), bề rộng cánh hiệu dụng (bên Phần 4 — Điều 6.2.6 đã dẫn ở mục F),
+  đường cong ứng suất–biến dạng bê tông 7.2.1 (cho 7.3.2.5 tương thích ứng biến).
 
-## Đề nghị kiểm tra ngẫu nhiên
+<details>
+<summary>Đề nghị kiểm tra ngẫu nhiên đợt 1–2 — ĐÃ SOI XONG 2026-11-28, xem mục K</summary>
 
-Mở PDF gốc đối chiếu các chỗ sau (trang in = trang PDF + 1):
+(7 điểm gốc giữ nguyên trong lịch sử git; không còn tác vụ mở.)
 
-1. tr.30–31: φ = **1,00** cho mặt cắt DƯL không khống chế kéo (nguồn: hàng thứ hai của bảng A) —
-   soi lại xem dòng có bị vỡ cột không; đối chiếu cận trên pt (12).
-2. tr.31: φ cắt/xoắn bê tông thường = **0,90** và bê tông nhẹ = **0,80**.
-3. tr.39: εcl = 0,002 cho "thép cấp 420 và toàn bộ thép dự ứng lực"; εtl = 0,005 cho
-   "fy ≤ 520 MPa và thép dự ứng lực" (đúng ký hiệu εd/εtl bản in dùng lẫn).
-4. tr.30: Bảng 2 — dòng 84 MPa gồm những loại nào (bản in xuống dòng lộn xộn).
-5. tr.41: pt (24) `k = 2(1,04 − fpy/fpu)` và mẫu pt (25) dạng `kAps·fpu/dp` (chữ nhỏ, vỡ công thức).
-6. tr.43: pt (32) — dấu của số hạng A's·f's (bản in có "−" ở trước A's nhưng dấu + ở số hạng cánh;
-   đối xứng cánh-lever kiểm lại từng ngoặc).
-7. tr.46: γ3 = 0,67 (A615) / 0,75 (A706) / 1,0 (DƯL) và mẫu số βs của pt (34): `0,7(h − dc)`.
+</details>
