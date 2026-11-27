@@ -1,0 +1,9 @@
+# File tam cua agent / he dieu hanh
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+tmp/
+
+# Ban doan chay thu (khong commit ket qua sinh ra)
+out/
