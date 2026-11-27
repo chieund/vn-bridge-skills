@@ -47,28 +47,6 @@ Hỏi tiếp *"Tính mô men HL-93 cho dầm giản đơn nhịp 30 m"* — agen
 Gỡ cài: `./install.sh --uninstall` hoặc `.\install.ps1 -Uninstall` (chỉ xóa liên kết,
 không xóa repo).
 
-## Cấu trúc repo
-
-```
-vn-bridge-skills/
-├── README.md
-├── install.sh                 # symlink cho Linux/macOS/WSL
-├── install.ps1                # junction cho Windows (+ kiểm tra Python)
-└── skills/
-    └── thiet-ke-cau-11823/    # skill bao quát (bản nháp test)
-        ├── SKILL.md           # quy trình + nguyên tắc + bẫy thường gặp
-        ├── references/
-        │   ├── phan-2-3-tai-trong.md   # hệ số TCVN 11823-2/3:2017 đã đối chiếu bản gốc
-        │   ├── phan-4-phan-bo.md       # phân bố hoạt tải Phần 4 (Bảng 4-13, Điều 6.2.3)
-        │   └── thuyet-minh.md          # khuôn báo cáo + văn phong hồ sơ
-        └── scripts/
-            ├── bridge_calc.py       # HL-93, tổ hợp tải, võng, dist (hệ số phân bố g)
-            ├── distribution.py      # hệ số phân bố hoạt tải — Phần 4, Điều 6.2.2-6.2.3
-            └── test_*.py            # so tính tay + kiểm script khớp file tham chiếu
-```
-
-Chạy test: `python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts`
-
 ## Skill hiện có
 
 | Skill | Phạm vi | Trạng thái |
