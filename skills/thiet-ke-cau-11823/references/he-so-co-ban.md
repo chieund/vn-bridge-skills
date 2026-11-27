@@ -125,12 +125,26 @@ toàn dưới đất (6.2.1). Được chiết giảm IM (trừ mối nối) n�
 - Mỏi: một xe tải thiết kế, **không nhân m**; nếu dùng hệ số phân bố gần đúng (đã chứa
   1,20 của 1 làn) thì **chia lại cho 1,20** khi xét mỏi.
 
-## F. Độ võng do hoạt tải — Điều 6.1.3.2 (Phần 3, tr.25) + Phần 2 Điều 5.2.6.2
+## F. Độ võng do hoạt tải — Điều 6.1.3.2 (Phần 3, tr.25) + Điều 5.2.6.2 (Phần 2, tr.16–17)
 
-Đặt tải để đánh giá võng = lớn hơn của: **(a)** chỉ xe tải thiết kế (tĩnh), hoặc
-**(b)** **25% xe tải thiết kế + tải trọng làn**. Không nhân hệ số xung kích, không nhân γ.
-Giới hạn L/800 (võng đàn hồi) là thông lệ theo AASHTO 2.5.2.6.2; **kiểm tra lại Điều 5.2.6.2
-Phần 2 TCVN 11823-2:2017** trước khi ghi vào hồ sơ (bản nháp này mới khóa số liệu Phần 3).
+**Cách đặt tải** (6.1.3.2 Phần 3): võng lấy theo trị số **lớn hơn** của:
+**(a)** chỉ xe tải thiết kế, hoặc **(b)** 25% xe tải thiết kế + tải trọng làn thiết kế.
+
+**Giá trị áp dụng khi kiểm** (Điều 5.2.6.2 Phần 2 — đã đối chiếu bản gốc):
+**tải trọng xe phải bao gồm lực xung kích** (IM); **không** nhân hệ số tải trọng γ.
+
+| Trường hợp | Giới hạn |
+|---|---|
+| Tải trọng xe nói chung | **L/800** |
+| Tải trọng xe và/hoặc người đi bộ | **L/1000** |
+| Tải trọng xe ở phần hẫng | **L/300** |
+| Tải xe và/hoặc người đi bộ ở phần hẫng | **L/375** |
+
+(L = chiều dài nhịp.) Khi xét võng tuyệt đối lớn nhất với hệ dầm thẳng: đặt tải **tất cả
+các làn**, mọi cấu kiện chịu lực coi như võng như nhau. Các tiêu chuẩn võng này là
+**tuỳ chọn**, trừ: mặt cầu trực hướng (bắt buộc), kết cấu ba mặt bê tông đúc sẵn
+(Điều 14.5.9 Phần 12), mặt cầu mạng dầm kim loại/bê tông (Điều 5.2 Phần 9).
+Nguồn PDF: https://cokhicongtrinh.com.vn/upload/files/TCVN%2011823_Phan%202_Tong%20the%20va%20dac%20diem%20vi%20tri%20cau.pdf
 
 ## G. Mỏi — Điều 6.1.4 (Phần 3)
 

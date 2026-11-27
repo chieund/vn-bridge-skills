@@ -83,8 +83,9 @@ mỗi bảng có tên ("Bảng X.Y – ..."). Cuối thuyết minh luôn có b�
 
 ## 7. Nguồn và giới hạn
 
-- Nguồn khóa số liệu: **TCVN 11823-3:2017** — Phần 3 "Tải trọng và hệ số tải trọng"
-  (bản điện tử: `http://www.nhatnguyen.vn/media/ftp/TCVN11823-3_2017_916997.pdf`).
+- Nguồn khóa số liệu: **TCVN 11823-3:2017** (Phần 3 — Tải trọng và hệ số tải trọng,
+  http://www.nhatnguyen.vn/media/ftp/TCVN11823-3_2017_916997.pdf) và
+  **TCVN 11823-2:2017 Điều 5.2.6.2** (giới hạn võng).
 - Các Phần khác của bộ 11823 (5-kết cấu bê tông, 11-mố trụ, 12-kết cấu vùi...) chưa đưa
   hệ số vào bản nháp này → hỏi tới đâu thành thật tới đó.
 - Lộ trình tách skill chuyên sâu khi bản nháp ổn định: `cau-tai-trong-11823`,
