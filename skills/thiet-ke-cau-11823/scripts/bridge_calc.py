@@ -17,6 +17,8 @@ Lệnh:
                (Bảng 6-13: mô men / lực cắt, dầm giữa / dầm biên, cầu chéo)
   special      Nội lực dầm khi có xe quá tải + giao thông thường — phương
                trình (16), Điều 6.2.2.5 (tr.55)
+  shear        Sức kháng cắt φVn — Phần 5, Điều 8.3 (simple/general-a/general-b/simplified)
+  mcr          Mômen nứt pt (33) + ngưỡng As,min — Phần 5, Điều 7.3.3
   flexure      Sức kháng uốn danh định/dùng φMn cho mặt cắt BTCT-DƯL —
                Phần 5, Điều 7.3.2 (phương trình 31-32)
 
@@ -34,6 +36,7 @@ import sys
 
 import distribution as dp
 import rc_flexure as rcf
+import rc_shear as rcs
 
 # ---------------------------------------------------------------------------
 # Hệ số khóa — TCVN 11823-3:2017 (xem references/phan-2-3-tai-trong.md)
@@ -416,8 +419,91 @@ def cmd_flexure(a):
     print(f"Kết quả:    Mr = {num(r.Mr / nmm)} kN·m")
     for note in r.notes:
         print(f"Lưu ý:    {note}")
-    print("Kiểm tra phụ bắt buộc: As,min Điều 7.3.3 (cần fr, Điều 4.2.6 — chưa phiên)")
-    print("và khống chế nứt Điều 7.3.4 khi fs > 0,8fr.")
+    print("Kiểm tra phụ bắt buộc: As,min Điều 7.3.3 — lệnh `mcr` (fr=0,63√f'c đã khóa đợt 3);")
+    print("khống chế nứt Điều 7.3.4 khi ứng suất kéo vượt 80%fr ở TTGH sử dụng.")
+    print("Bản nháp kỹ thuật — cần kỹ sư kiểm chứng trước khi đưa vào hồ sơ.")
+
+
+
+def cmd_shear(a):
+    """In báo cáo sức kháng cắt — Phần 5, Điều 8.3 (đơn vị in: kN)."""
+    kn = 1e3
+    try:
+        if a.method == "simple":
+            r = rcs.shear_simple(a.fc, a.bv, a.dv, a.Av, a.fy, a.s,
+                                 a.Vu * kn, a.Vp * kn, lightweight=a.light)
+        elif a.method == "general-a":
+            if a.eps_s is None:
+                raise rcs.ValueRange("general-a cần --eps-s (εs tính theo pt 80 — "
+                                     "skill chưa tự tính εs vì cần Mu/Nu nội bộ mặt cắt)")
+            r = rcs.general_a(a.eps_s, a.fc, a.bv, a.dv, a.Av, a.fy, a.s,
+                              a.Vu * kn, a.Vp * kn, lightweight=a.light)
+        elif a.method == "general-b":
+            if a.fuc is None or a.eps_x is None:
+                raise rcs.ValueRange("general-b cần --fuc (Vu/f'c, hàng Bảng 4) và --eps-x")
+            r = rcs.general_b(a.fuc, a.eps_x, a.fc, a.bv, a.dv, a.Av, a.fy, a.s,
+                              a.Vp * kn, phi=None if not a.light else 0.8)
+        else:  # simplified 8.3.4.3
+            for req in ("Vd", "Vi", "Mmax", "Sc", "Mdnc"):
+                if getattr(a, req) is None:
+                    raise rcs.ValueRange(f"8.3.4.3 cần --{req}")
+            r = rcs.shear_simplified(a.fc, a.bv, a.dv, a.Av, a.fy, a.s,
+                                     a.Vd * kn, a.Vi * kn, a.Mmax * 1e6, a.Sc,
+                                     a.Snc or a.Sc, a.Mdnc * 1e6, a.fcpe,
+                                     a.fpc_core, lightweight=a.light)
+    except rcs.ValueRange as err:
+        print(f"THIẾU / NGOÀI PHẠM VI: {err}")
+        sys.exit(2)
+    print(f"Lực cắt — {r.method if isinstance(r, rcs.Shear) else '8.3.4.3 đơn giản hóa Vci/Vcw'} "
+          f"(Điều 8.3.4, Phần 5; φ = {coef(r.phi)} theo Điều 5.4.2.1 tr.31)")
+    if isinstance(r, rcs.ShearSimplified):
+        print(f"Mcre = {num(r.Mcre/1e6)} kN·m (pt 87; fr=0,52√f'c theo Điều 4.2.6)")
+        print(f"Vci = {num(r.Vci/kn)} kN ; Vcw = {num(r.Vcw/kn)} kN → quyết định: {r.governing}")
+        print(f"Vc  = {num(r.Vc/kn)} kN")
+    else:
+        print(f"β = {num(r.beta, 2)} ; θ = {num(r.theta, 1)}°")
+        print(f"Vc = {num(r.Vc/kn)} kN (pt 74)")
+    Vpx = getattr(r, "Vp", 0.0)
+    print(f"Vs = {num(r.Vs/kn)} kN (pt 75) ; Vp = {num(Vpx/kn)} kN "
+          f"{'(phương pháp 8.3.4.3: Vp=0)' if isinstance(r, rcs.ShearSimplified) else ''}")
+    print(f"Vn = {num(r.Vn/kn)} kN (pt 72; trần pt 73 = {num(r.cap/kn)} kN)")
+    print(f"Vr = φ·Vn = {num(r.Vr/kn)} kN ; Vu = {num(a.Vu)} kN → "
+          f"{'ĐẠT' if r.Vr >= a.Vu*kn else 'KHÔNG ĐẠT'}")
+    for n in r.notes:
+        print(f"Lưu ý: {n}")
+    smax = rcs.s_max(a.dv, rcs.tau_u(a.Vu*kn, a.Vp*kn, a.bv, a.dv, r.phi), a.fc)
+    print(f"Cấu tạo: smax = {num(smax,0)} mm (8.2.7 pt 68/69) — bước dùng {num(a.s,0)} mm "
+          f"{'ĐẠT' if a.s <= smax else 'VƯỢT'}")
+    amin = rcs.av_min(a.bv, a.s, a.fc, a.fy)
+    print(f"Av tối thiểu pt (66) = {num(amin,0)} mm² — bố trí {num(a.Av,0)} mm² "
+          f"{'ĐẠT' if a.Av >= amin else 'KHÔNG ĐẠT'}")
+    print("Bản nháp kỹ thuật — cần kỹ sư kiểm chứng trước khi đưa vào hồ sơ.")
+
+
+def cmd_mcr(a):
+    """Mcr + ngưỡng As,min — Điều 7.3.3 (tr.45-46)."""
+    try:
+        Mcr = rcf.mcr(a.fc, a.Sc, a.Mdnc * 1e6, Snc=a.Snc, fcpe=a.fcpe,
+                      gamma1="precast" if a.precast else "cast-in-place",
+                      gamma2="unbonded" if a.unbonded else "bonded",
+                      gamma3=a.gamma3)
+    except (rcf.ValueRange, KeyError) as err:
+        print(f"THIẾU / NGOÀI PHẠM VI: {err}")
+        sys.exit(2)
+    print(f"Mcr theo pt (33) Điều 7.3.3 — fr = 0,63√f'c = {num(rcs.fr_flexure(a.fc),1)} MPa (Điều 4.2.6)")
+    print(f"γ1 = {rcf.GAMMA1['precast' if a.precast else 'cast-in-place']} ; "
+          f"γ2 = {rcf.GAMMA2['unbonded' if a.unbonded else 'bonded']} ; γ3 = {rcf.GAMMA3[a.gamma3]}")
+    print(f"Thay số: Sc = {num(a.Sc)} mm³ ; Mdnc = {num(a.Mdnc)} kN·m ; fcpe = {num(a.fcpe,1)} MPa")
+    print(f"Kết quả: Mcr = {num(Mcr/1e6)} kN·m")
+    if a.Mu is not None:
+        need = rcf.as_min_required(a.Mu * 1e6, Mcr)
+        print(f"Ngưỡng: Mr ≥ min(1,33·Mu = {num(1.33*a.Mu)}, Mcr = {num(Mcr/1e6)}) "
+              f"= {num(need/1e6)} kN·m")
+        if a.Mr is not None:
+            ok = a.Mr * 1e6 >= need
+            print(f"Mr đã kiểm = {num(a.Mr)} kN·m → {'ĐẠT' if ok else 'KHÔNG ĐẠT — cần tăng As/Ap'}")
+    else:
+        print("Truyền --Mu (và --Mr từ lệnh flexure) để kết luận ĐẠT/KHÔNG ĐẠT Điều 7.3.3.")
     print("Bản nháp kỹ thuật — cần kỹ sư kiểm chứng trước khi đưa vào hồ sơ.")
 
 
@@ -541,6 +627,55 @@ def main(argv=None):
     fx.add_argument("--dsc", type=float,
                     help="từ thớ nén ngoài cùng tới trọng tâm thép chịu nén (mm)")
     fx.set_defaults(func=cmd_flexure)
+
+    sh = sub.add_parser("shear",
+                        help="Sức kháng cắt Vr=φVn — Phần 5, Điều 8.3 (đơn giản / "
+                             "tổng quát a,b / đơn giản hóa Vci-Vcw)")
+    sh.add_argument("--method", required=True,
+                    choices=["simple", "general-a", "general-b", "simplified"],
+                    help="simple=8.3.4.1 (khong DƯL, β=2 θ=45); general-a=8.3.4.2(a) "
+                         "pt77-79; general-b=8.3.4.2(b) Bảng 4; simplified=8.3.4.3 "
+                         "Vci/Vcw cotθ pt89")
+    sh.add_argument("--fc", type=float, required=True, help="f'c (MPa)")
+    sh.add_argument("--bv", type=float, required=True, help="bề rộng bụng hiệu dụng bv (mm)")
+    sh.add_argument("--dv", type=float, required=True,
+                    help="chiều cao chịu cắt hiệu dụng dv (mm) — ≥ max(0,9de, 0,72h)")
+    sh.add_argument("--Av", type=float, required=True,
+                    help="diện tích cốt thép ngang trong bước s (mm²)")
+    sh.add_argument("--s", type=float, required=True, help="bước cốt đai song song trục (mm)")
+    sh.add_argument("--fy", type=float, default=420.0, help="fy cốt ngang (MPa)")
+    sh.add_argument("--Vu", type=float, required=True, help="lực cắt tính toán (kN)")
+    sh.add_argument("--Vp", type=float, default=0.0, help="thành phần DƯL theo hướng cắt (kN)")
+    sh.add_argument("--eps-s", dest="eps_s", type=float,
+                    help="εs (pt 80) cho general-a")
+    sh.add_argument("--fuc", type=float, help="vu/f'c = Vu/(bv·dv·f'c) không thứ nguyên (hàng Bảng 4) cho general-b")
+    sh.add_argument("--eps-x", dest="eps_x", type=float, help="εx (pt 82-84) cho general-b")
+    sh.add_argument("--Vd", type=float, help="lực cắt tĩnh tải không nhân hệ số DC+DW (kN) — simplified")
+    sh.add_argument("--Vi", type=float, help="lực cắt tính toán đồng thời Mmax (kN) — simplified")
+    sh.add_argument("--Mmax", type=float, help="mômen đã nhân hệ số lớn nhất (kN·m) — simplified")
+    sh.add_argument("--Sc", type=float, help="môđun tiết diện liên hợp Sc (mm³) — simplified/Mcr")
+    sh.add_argument("--Snc", type=float, help="môđun tiết diện không liên hợp (mm³)")
+    sh.add_argument("--Mdnc", type=float, help="mômen tĩnh tải không nhân hệ số (kN·m)")
+    sh.add_argument("--fcpe", type=float, default=0.0, help="ứng suất nén DƯL hiệu dụng tại thớ kéo (MPa)")
+    sh.add_argument("--fpc", dest="fpc_core", type=float, default=0.0,
+                    help="fpc nén tại trọng tâm (MPa, dương nén) — Vcw pt (88)")
+    sh.add_argument("--light", action="store_true", help="bê tông nhẹ — φ cắt 0,80 (tr.31)")
+    sh.set_defaults(func=cmd_shear)
+
+    mc = sub.add_parser("mcr",
+                        help="Mômen nứt Mcr + ngưỡng As,min — Phần 5, Điều 7.3.3 pt (33)")
+    mc.add_argument("--fc", type=float, required=True, help="f'c (MPa)")
+    mc.add_argument("--Sc", type=float, required=True, help="môđun tiết diện Sc (mm³)")
+    mc.add_argument("--Snc", type=float, help="môđun tiết diện không liên hợp Snc (mm³) — mặc định = Sc")
+    mc.add_argument("--Mdnc", type=float, required=True, help="mômen tĩnh tải không nhân hệ số (kN·m)")
+    mc.add_argument("--fcpe", type=float, default=0.0, help="ứng suất nén DƯL hiệu dụng tại thớ kéo do tải ngoài (MPa)")
+    mc.add_argument("--precast", action="store_true", help="kết cấu đúc sẵn lắp ghép (γ1=1,2; ngược lại 1,6)")
+    mc.add_argument("--unbonded", action="store_true", help="bó không dính bám (γ2=1,0)")
+    mc.add_argument("--gamma3", required=True, choices=list(rcf.GAMMA3),
+                    help="γ3: A615-420=0,67 · A706-420=0,75 · PS=1,0")
+    mc.add_argument("--Mu", type=float, help="mômen tính toán ULS (kN·m) — nếu cho, in ngưỡng 1,33Mu và so Mr")
+    mc.add_argument("--Mr", type=float, help="Mr = φMn đã tính (kN·m) — để kết luận ĐẠT/KHÔNG ĐẠT")
+    mc.set_defaults(func=cmd_mcr)
 
     a = p.parse_args(argv)
     if getattr(a, "lanes", None) is not None:
