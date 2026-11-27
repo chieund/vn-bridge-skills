@@ -17,6 +17,8 @@ Lệnh:
                (Bảng 6-13: mô men / lực cắt, dầm giữa / dầm biên, cầu chéo)
   special      Nội lực dầm khi có xe quá tải + giao thông thường — phương
                trình (16), Điều 6.2.2.5 (tr.55)
+  flexure      Sức kháng uốn danh định/dùng φMn cho mặt cắt BTCT-DƯL —
+               Phần 5, Điều 7.3.2 (phương trình 31-32)
 
 Ví dụ:
   python3 bridge_calc.py hl93 --L 30
@@ -25,11 +27,13 @@ Ví dụ:
   python3 bridge_calc.py dist --kind moment --place interior --section k \
           --S 2400 --L 30000 --ts 200 --Kg 5e11 --Nb 5          # đầu vào theo mm
   python3 bridge_calc.py special --Gp 640000 --GD 1.2e6 --g1 0.65 --gm 0.75
+  python3 bridge_calc.py flexure --fc 35 --bw 400 --ds 700 --As 4000 --fy 420
 """
 import argparse
 import sys
 
 import distribution as dp
+import rc_flexure as rcf
 
 # ---------------------------------------------------------------------------
 # Hệ số khóa — TCVN 11823-3:2017 (xem references/phan-2-3-tai-trong.md)
@@ -389,6 +393,34 @@ def cmd_special(a):
     print("phân tích theo yêu cầu mặt cắt cứng cho dầm biên có vách ngăn (tr.55, tr.47).")
 
 
+def cmd_flexure(a):
+    """In báo cáo sức kháng uốn danh định — Phần 5, Điều 7.3.2."""
+    try:
+        r = rcf.flexure(a.fc, a.bw, ds=a.ds, As=a.As, fy=a.fy, b=a.b, hf=a.hf,
+                        dp=a.dp, Ap=a.Ap, fpu=a.fpu, fpy=a.fpy, fpe=a.fpe,
+                        unbonded=a.unbonded, lambda_i=a.lam_i, n_dev=a.n_dev,
+                        asc=a.Asc, dsc=a.dsc)
+    except rcf.ValueRange as err:
+        print(f"THIẾU / NGOÀI PHẠM VI: {err}")
+        sys.exit(2)
+    nmm = 1e6  # N.mm -> kN.m
+    hinh = "mặt cắt chữ T" if (a.b and a.hf) else "mặt cắt chữ nhật"
+    print(f"Sức kháng uốn — {hinh} (Điều 7.3.2.2/7.3.2.3, Phần 5)")
+    print(f"Đơn vị: f'c, fy MPa; kích thước mm; kết quả kN·m (pt (31) dùng N.mm)")
+    print(f"Trục trung hòa: c = {num(r.c, 1)} mm ; a = β1·c = {num(r.a, 1)} mm")
+    print(f"Biến dạng kéo ngoài cùng εt = {r.eps_t:.4f} → {r.mode}")
+    if r.fps is not None:
+        print(f"Ứng suất DƯL trung bình tại Mn: fps = {num(r.fps, 1)} MPa")
+    print(f"Công thức:  Mr = φ·Mn ;  Mn = pt (32), fs = fy, pt (22) {'' if not any('Vi phạm' in n for n in r.notes) else 'VI PHẠM'}")
+    print(f"Thay số:    Mn = {num(r.Mn / nmm)} kN·m ;  φ = {coef(r.phi)} (Điều 5.4.2.1)")
+    print(f"Kết quả:    Mr = {num(r.Mr / nmm)} kN·m")
+    for note in r.notes:
+        print(f"Lưu ý:    {note}")
+    print("Kiểm tra phụ bắt buộc: As,min Điều 7.3.3 (cần fr, Điều 4.2.6 — chưa phiên)")
+    print("và khống chế nứt Điều 7.3.4 khi fs > 0,8fr.")
+    print("Bản nháp kỹ thuật — cần kỹ sư kiểm chứng trước khi đưa vào hồ sơ.")
+
+
 def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")   # bảng điều khiển Windows cần UTF-8
@@ -477,6 +509,38 @@ def main(argv=None):
                     help="Z = 1,0 (phân bố một làn tính theo quy tắc đòn bẩy)")
     sp.add_argument("--unit", default="kN·mm", help="đơn vị của G")
     sp.set_defaults(func=cmd_special)
+
+    fx = sub.add_parser("flexure",
+                        help="Sức kháng uốn mặt cắt BTCT/DƯL — Phần 5, Điều 7.3.2")
+    fx.add_argument("--fc", type=float, required=True,
+                    help="cường độ nén đặc trưng bê tông 28 ngày f'c (MPa)")
+    fx.add_argument("--bw", type=float, required=True, help="bề rộng bản bụng (mm)")
+    fx.add_argument("--b", type=float,
+                    help="bề rộng hiệu dụng bản cánh chịu nén (mm) — dùng cho chữ T")
+    fx.add_argument("--hf", type=float, default=0.0, help="bề dày bản cánh hf (mm)")
+    fx.add_argument("--ds", type=float,
+                    help="từ thớ nén ngoài cùng tới trọng tâm thép kéo thường (mm)")
+    fx.add_argument("--As", type=float, default=0.0,
+                    help="diện tích cốt thép thường chịu kéo (mm²)")
+    fx.add_argument("--fy", type=float, help="giới hạn chảy cốt thép thường (MPa)")
+    fx.add_argument("--dp", type=float,
+                    help="từ thớ nén ngoài cùng tới trọng tâm bó DƯL (mm)")
+    fx.add_argument("--Ap", type=float, default=0.0, help="diện tích thép DƯL (mm²)")
+    fx.add_argument("--fpu", type=float, help="cường độ chịu kéo quy định cáp DƯL (MPa)")
+    fx.add_argument("--fpy", type=float, help="giới hạn chảy thép DƯL (MPa)")
+    fx.add_argument("--fpe", type=float,
+                    help="ứng suất hiệu dụng DƯL sau mọi mất mát (MPa)")
+    fx.add_argument("--unbonded", action="store_true",
+                    help="DƯL không dính bám — dùng pt (27)-(30) thay (23)-(26)")
+    fx.add_argument("--lam-i", dest="lam_i", type=float,
+                    help="chiều dài bó tao thép giữa các neo (mm) — pt (28)")
+    fx.add_argument("--n-dev", dest="n_dev", type=int, default=0,
+                    help="số gối đỡ mà bó đi qua giữa các neo — pt (28)")
+    fx.add_argument("--Asc", type=float, default=0.0,
+                    help="diện tích cốt thép chịu nén (mm²)")
+    fx.add_argument("--dsc", type=float,
+                    help="từ thớ nén ngoài cùng tới trọng tâm thép chịu nén (mm)")
+    fx.set_defaults(func=cmd_flexure)
 
     a = p.parse_args(argv)
     if getattr(a, "lanes", None) is not None:

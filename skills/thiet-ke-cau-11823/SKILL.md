@@ -32,7 +32,7 @@ Trước khi trả lời, xác định câu hỏi thuộc dòng nào và **đọ
 |---|---|---|
 | Hệ số Phần 2–3: tải HL-93, IM, hệ số làn m, γ tổ hợp, lực hãm BR / ly tâm CE / gió, giới hạn võng | `references/phan-2-3-tai-trong.md` | `hl93`, `combine`, `deflection` |
 | Phân bố hoạt tải cho từng dầm (g mô men / lực cắt, dầm giữa / dầm biên, cầu chéo, dầm ngang, dải tương đương cầu bản), xe quá tải cấp phép | `references/phan-4-phan-bo.md` | `dist`, `special` |
-| Kết cấu bê tông Phần 5: hệ số sức kháng φ theo chế độ phá hoại, φ cắt/xoắn theo loại bê tông, giới hạn biến dạng εcu/εcl/εtl, khối chữ nhật α1/β1, ngưỡng mỏi (ΔF)TH mối nối cáp DƯL | `references/phan-5-betong.md` | tra hệ số — chưa có lệnh tính nội lực dầm |
+| Kết cấu bê tông Phần 5: hệ số sức kháng φ theo chế độ phá hoại, φ cắt/xoắn theo loại bê tông, giới hạn biến dạng εcu/εcl/εtl, khối chữ nhật α1/β1, lực kháng uốn BTCT & DƯL (pt 23-32), ngưỡng mỏi (ΔF)TH mối nối cáp DƯL | `references/phan-5-betong.md` | `flexure` |
 | Soạn / định dạng đoạn thuyết minh, văn phong hồ sơ | `references/thuyet-minh.md` | chạy lệnh tính trước, dán kết quả vào khuôn 4 dòng |
 
 Bài toán ngoài phạm vi bản nháp (động đất chi tiết, móng cọc chi tiết, dây văng, đúc hẫng...)
@@ -79,6 +79,8 @@ python3 scripts/bridge_calc.py deflection --L 30 --EI 2.5e7 --g 0.5   # võng so
 python3 scripts/bridge_calc.py dist --kind moment --place interior --section k \
         --S 2400 --L 30000 --ts 200 --Kg 5e11 --Nb 5             # g phân bố hoạt tải (Phần 4)
 python3 scripts/bridge_calc.py special --Gp 640000 --GD 1.2e6 --g1 0.65 --gm 0.75   # xe quá tải
+python3 scripts/bridge_calc.py flexure --fc 35 --bw 200 --b 1200 --hf 150 \
+        --ds 900 --As 15000 --fy 420                       # Mr = φMn — Phần 5, Điều 7.3.2
 ```
 
 - `--limit-state`: `str1` Cường độ I, `ser1`/`ser3` Sử dụng I/III, `fat1`/`fat2` Mỏi I/II.
@@ -125,11 +127,12 @@ Số liệu của từng Phần nằm trong file tham chiếu riêng (bảng đ�
   Riêng kiểm tra **mặt cắt cứng** dầm biên có vách ngăn (tr.47): Phần 4 chỉ nêu yêu
   cầu, KHÔNG in công thức; `distribution.rigid_exterior_g()` cho giá trị chặn dưới
   theo tĩnh học của giả thiết đó — trích dẫn vào hồ sơ phải ghi rõ nguồn diễn giải.
-- **Phần 5** — TCVN 11823-5:2017: đợt 1 đã khóa hệ số sức kháng φ (Điều 5.4.2.1, tr.30–31),
-  giới hạn biến dạng (Điều 7.2.2, tr.39), khối ứng suất chữ nhật α1/β1 (tr.40), ngưỡng mỏi
-  mối nối DƯL (Bảng 2, tr.30) trong `references/phan-5-betong.md`. Công thức lực kháng uốn
-  (Điều 7.3.2), lực cắt (Điều 8.3), giới hạn vết nứt CHƯA khóa — hỏi tới đâu soi bản gốc
-  tới đó, chưa code.
+- **Phần 5** — TCVN 11823-5:2017: đã khóa φ (Điều 5.4.2.1, tr.30–31), giới hạn biến dạng +
+  khối chữ nhật α1/β1 (Điều 7.2.2, tr.39–40), mỏi mối nối DƯL (Bảng 2, tr.30), **lực kháng uốn
+  Điều 7.3.1–7.3.2** (tr.40–45, lệnh `flexure`), As,min (Điều 7.3.3, tr.45–46), khống chế nứt
+  s (Điều 7.3.4, tr.46) trong `references/phan-5-betong.md`. CHƯA khóa: fr (4.2.6) → As,min
+  chưa tính được Mcr; lực cắt Điều 8.3; tương thích ứng biến (cần Es). Hỏi tới đâu soi bản gốc
+  tới đó.
 - **Phần 10, 11, 14** (móng, mố trụ, gối khe) chưa đưa hệ số vào bản nháp này (đang mở rộng)
   → hỏi tới đâu thành thật tới đó.
 - Lộ trình tách skill chuyên sâu khi bản nháp ổn định: `cau-tai-trong-11823`,
