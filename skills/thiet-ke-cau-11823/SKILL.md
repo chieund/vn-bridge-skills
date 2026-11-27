@@ -1,6 +1,6 @@
 ---
 name: thiet-ke-cau-11823
-description: Trợ lý thiết kế sơ bộ và tra cứu tiêu chuẩn TCVN 11823:2017 (cầu đường bộ Việt Nam) — hệ số khóa sẵn theo văn bản gốc của chuẩn. Dùng khi người dùng hỏi về tải trọng HL-93, hệ số xung kích IM, hệ số làn m, tổ hợp tải trọng (Cường độ/Sử dụng/Đặc biệt/Mỏi), chọn sơ bộ kích thước dầm/bản mặt cầu, kiểm tra độ võng, hoặc cần viết đoạn thuyết minh tính toán cầu đường bộ theo TCVN. Các từ khóa: TCVN 11823, cầu đường bộ, HL-93, Super-T, dầm I, bản mặt cầu, 22TCN 272.
+description: Trợ lý thiết kế sơ bộ và tra cứu tiêu chuẩn TCVN 11823:2017 (cầu đường bộ Việt Nam) — hệ số khóa sẵn theo văn bản gốc của chuẩn. Dùng khi người dùng hỏi về tải trọng HL-93, hệ số xung kích IM, hệ số làn m, tổ hợp tải trọng (Cường độ/Sử dụng/Đặc biệt/Mỏi), hệ số phân bố hoạt tải cho từng dầm (dầm giữa, dầm biên, cầu chéo), chọn sơ bộ kích thước dầm/bản mặt cầu, kiểm tra độ võng, hoặc cần viết đoạn thuyết minh tính toán cầu đường bộ theo TCVN. Các từ khóa: TCVN 11823, cầu đường bộ, HL-93, Super-T, dầm I, bản mặt cầu, hệ số phân bố, dầm biên, cầu chéo, 22TCN 272.
 ---
 
 # Thiết kế cầu đường bộ theo TCVN 11823:2017 (bản nháp bao quát)
@@ -24,15 +24,17 @@ và không thay thế trách nhiệm thẩm tra của chủ trì thiết kế.
 6. Đầu ra chỉ là **bản nháp kỹ thuật**; nhắc người dùng một dòng ở cuối: "Cần kỹ sư
    kiểm chứng trước khi đưa vào hồ sơ."
 
-## 2. Nhận dạng yêu cầu
+## 2. Định tuyến
 
-| Người dùng hỏi về | Làm gì |
-|---|---|
-| Quy định / hệ số / công thức | Tra `references/phan-2-3-tai-trong.md`, trả lời ngắn + số điều khoản |
-| Tính sơ bộ (kích thước, tải, nội lực giản đơn) | Mục 3 + 4 |
-| Kiểm tra chéo số liệu họ đưa (VD từ Midas) | Mục 4, so với giá trị tra được, chỉ rõ điểm lệch |
-| Viết đoạn thuyết minh | Mục 5 định dạng, văn phong hồ sơ VN |
-| Bài toán ngoài phạm vi (động đất chi tiết, móng cọc, dây văng, đúc hẫng...) | Nói rõ ngoài phạm vi bản nháp; gợi ý tách skill chuyên sâu |
+Trước khi trả lời, xác định câu hỏi thuộc dòng nào và **đọc file tham chiếu tương ứng trước**:
+
+| Câu hỏi về | Đọc file | Lệnh script |
+|---|---|---|
+| Hệ số Phần 2–3: tải HL-93, IM, hệ số làn m, γ tổ hợp, lực hãm BR / ly tâm CE / gió, giới hạn võng | `references/phan-2-3-tai-trong.md` | `hl93`, `combine`, `deflection` |
+| Soạn / định dạng đoạn thuyết minh, văn phong hồ sơ | `references/thuyet-minh.md` | chạy lệnh tính trước, dán kết quả vào khuôn 4 dòng |
+
+Bài toán ngoài phạm vi bản nháp (động đất chi tiết, móng cọc chi tiết, dây văng, đúc hẫng...)
+→ nói rõ ngoài phạm vi; gợi ý tách skill chuyên sâu (xem mục 7).
 
 ## 3. Kiểm tra đầu vào trước khi tính
 
@@ -78,20 +80,7 @@ python3 scripts/bridge_calc.py deflection --L 30 --EI 2.5e7 --g 0.5   # võng so
 
 ## 5. Định dạng thuyết minh đầu ra
 
-Mỗi phép tính trình bày 4 dòng:
-
-```
-Công thức:  Mu = η·[γDC·MDC + γDW·MDW + γLL·m·(Mxe·(1 + IM/100) + Mlàn)]
-Thay số:    Mu = 1.0 × [1.25×420 + 1.50×180 + 1.75×1.0×(250×1.33 + 80)]
-Kết quả:    Mu = 1 516.9 kN·m
-Kết luận:   φMn = 2 050 kN·m ≥ Mu → ĐẠT
-```
-
-`Mxe` = mô men do xe tải/tandem thiết kế (nhân IM); `Mlàn` = mô men do tải làn 9,3 kN/m
-(**không** nhân IM). Không gộp hai thành phần rồi mới nhân `(1 + IM/100)`.
-
-Văn phong: ngắn, ngôi không xưng hô, số thập phân dùng dấu chấm, đơn vị sau trị số,
-mỗi bảng có tên ("Bảng X.Y – ..."). Cuối thuyết minh luôn có bảng tổng hợp đạt/không đạt.
+Đọc `references/thuyet-minh.md` và trình bày đúng khuôn 4 dòng + văn phong hồ sơ ghi ở đó.
 
 ## 6. Bẫy thường gặp (đã kiểm chứng bằng test)
 
@@ -105,12 +94,15 @@ mỗi bảng có tên ("Bảng X.Y – ..."). Cuối thuyết minh luôn có b�
 | γ hoạt tải Cường độ I | **1,75** (TCVN theo AASHTO 3rd-ed) — không phải 1,85 |
 | Ký hiệu điều khoản | Dùng số điều của TCVN (6.1.2, Bảng 10...), không dùng 3.6.x của AASHTO |
 
-## 7. Nguồn và giới hạn
+## 7. Nguồn theo Phần và giới hạn
 
-- Nguồn khóa số liệu: **TCVN 11823-3:2017** (Phần 3 — Tải trọng và hệ số tải trọng,
-  https://cokhicongtrinh.com.vn/upload/files/TCVN%2011823_Phan%203_Tai-trong-va-he-so-tai-trong.pdf) và
-  **TCVN 11823-2:2017 Điều 5.2.6.2** (giới hạn võng).
-- Các Phần khác của bộ 11823 (5-kết cấu bê tông, 11-mố trụ, 12-kết cấu vùi...) chưa đưa
-  hệ số vào bản nháp này → hỏi tới đâu thành thật tới đó.
+Số liệu của từng Phần nằm trong file tham chiếu riêng (bảng định tuyến mục 2):
+
+- **Phần 2** — TCVN 11823-2:2017, Điều 5.2.6.2: giới hạn võng (`phan-2-3-tai-trong.md`, mục F).
+- **Phần 3** — TCVN 11823-3:2017, tải trọng và hệ số tải trọng (`phan-2-3-tai-trong.md`);
+  nguồn văn bản: https://cokhicongtrinh.com.vn/upload/files/TCVN%2011823_Phan%203_Tai-trong-va-he-so-tai-trong.pdf
+- **Phần 4, 5, 10, 11, 14** (phân bố hoạt tải, kết cấu bê tông, mố, mố trụ móng, gối khe)
+  chưa đưa hệ số vào bản nháp này (đang mở rộng, xem `docs/superpowers/specs/`)
+  → hỏi tới đâu thành thật tới đó.
 - Lộ trình tách skill chuyên sâu khi bản nháp ổn định: `cau-tai-trong-11823`,
   `cau-kiem-toan-dam`, `cau-mo-tru-coc`, `cau-thuyet-minh`.
