@@ -61,9 +61,13 @@ Thiếu thì **liệt kê đúng các mục còn thiếu và hỏi lại** — k
 
 ### Công cụ tính — KHÔNG tự nhẩm số
 
-Mọi con số ra kết quả phải chạy qua `scripts/bridge_calc.py` (Python 3, không cần cài thêm).
-Đường dẫn `scripts/` tính từ **thư mục chứa file SKILL.md này** — nếu đang đứng ở thư mục
-khác thì dùng đường dẫn tuyệt đối. Windows: dùng `python` hoặc `py` nếu không có `python3`.
+Mọi con số ra kết quả phải chạy qua `scripts/bridge_calc.py` (**Python 3.10+**,
+thuần thư viện chuẩn — không cần cài package). Đường dẫn `scripts/` tính từ
+**thư mục chứa file SKILL.md này** — nếu đang đứng ở thư mục khác thì dùng
+đường dẫn tuyệt đối. Windows mặc định CHƯA có Python: thử `python --version`
+hoặc `py -3 --version`; nếu lỗi, nhờ người dùng chạy
+`winget install Python.Python.3.12` trong Terminal (mở lại Terminal sau cài)
+và trên Windows dùng `python` / `py -3` thay cho `python3`.
 Dán nguyên phần in ra vào thuyết minh:
 
 ```bash
@@ -71,12 +75,19 @@ python3 scripts/bridge_calc.py hl93 --L 30                       # M, V do HL-93
 python3 scripts/bridge_calc.py combine --limit-state str1 \
         --dc 420 --dw 180 --truck 250 --lane 80 --m 0.6 --resistance 2050
 python3 scripts/bridge_calc.py deflection --L 30 --EI 2.5e7 --g 0.5   # võng so với L/800
+python3 scripts/bridge_calc.py dist --kind moment --place interior --section k \
+        --S 2400 --L 30000 --ts 200 --Kg 5e11 --Nb 5             # g phân bố hoạt tải (Phần 4)
 ```
 
 - `--limit-state`: `str1` Cường độ I, `ser1`/`ser3` Sử dụng I/III, `fat1`/`fat2` Mỏi I/II.
 - `--truck` là nội lực do xe **chưa nhân IM**; script tự nhân IM cho xe, không nhân cho làn.
 - `--m`: hệ số làn, hoặc hệ số phân bố g (đã chứa m); `--lanes N` để tra m theo Bảng 7.
-- Ngoài phạm vi script (dầm liên tục, hệ số phân bố ngang, gió, động đất...) → nói rõ,
+- `dist`: `--kind moment|shear`, `--place interior|exterior`, `--section` theo Bảng 4;
+  **đơn vị đầu vào mm/độ** đúng bản in Phần 4. Cầu chéo thêm `--skew <độ>`
+  (nhân Bảng 9 mô men / Bảng 13 lực cắt). Ngoài phạm vi bảng in, truyền `--g-int`
+  tường minh hoặc báo cần Điều 6.3. Script in "NGOÀI PHẠM VI" (exit 1) hoặc
+  "THIẾU ĐẦU VÀO" (exit 2) → nói thẳng, không tự tính tay thay.
+- Ngoài phạm vi script (dầm liên tục, phản lực gom gối, gió, động đất...) → nói rõ,
   không tự tính tay rồi trình bày như kết quả đã kiểm.
 
 ## 5. Định dạng thuyết minh đầu ra
@@ -102,8 +113,11 @@ Số liệu của từng Phần nằm trong file tham chiếu riêng (bảng đ�
 - **Phần 2** — TCVN 11823-2:2017, Điều 5.2.6.2: giới hạn võng (`phan-2-3-tai-trong.md`, mục F).
 - **Phần 3** — TCVN 11823-3:2017, tải trọng và hệ số tải trọng (`phan-2-3-tai-trong.md`);
   nguồn văn bản: https://cokhicongtrinh.com.vn/upload/files/TCVN%2011823_Phan%203_Tai-trong-va-he-so-tai-trong.pdf
-- **Phần 4, 5, 10, 11, 14** (phân bố hoạt tải, kết cấu bê tông, mố, mố trụ móng, gối khe)
-  chưa đưa hệ số vào bản nháp này (đang mở rộng, xem `docs/superpowers/specs/`)
-  → hỏi tới đâu thành thật tới đó.
+- **Phần 4** — TCVN 11823-4:2017, Điều 6.2.2–6.2.3: hệ số phân bố g mô men/lực cắt
+  cho dầm giữa + dầm biên, đơn bẩy, hiệu chỉnh cầu chéo (Bảng 9/13), dầm ngang
+  (Bảng 10), dải tương đương cầu bản (Điều 6.2.3) — đã khóa trong
+  `references/phan-4-phan-bo.md`, tính bằng lệnh `dist`.
+- **Phần 5, 10, 11, 14** (kết cấu bê tông, mố, mố trụ móng, gối khe) chưa đưa hệ số
+  vào bản nháp này (đang mở rộng) → hỏi tới đâu thành thật tới đó.
 - Lộ trình tách skill chuyên sâu khi bản nháp ổn định: `cau-tai-trong-11823`,
   `cau-kiem-toan-dam`, `cau-mo-tru-coc`, `cau-thuyet-minh`.

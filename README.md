@@ -5,8 +5,11 @@ dùng chung cho Claude Code, Codex, Gemini CLI, GitHub Copilot CLI, OpenCode —
 
 ## Yêu cầu
 
-- `git`, và **Python 3.8+** để chạy `scripts/bridge_calc.py` (không cần cài thư viện thêm).
-  Windows: cài Python từ python.org, lệnh có thể là `python` hoặc `py` thay cho `python3`.
+- `git`, và **Python 3.10+** để chạy `scripts/bridge_calc.py` (thuần thư viện chuẩn,
+  không cài package thêm). Windows mặc định **không có sẵn Python**: kiểm tra
+  `python --version` hoặc `py -3 --version`; nếu báo lỗi, mở Terminal chạy
+  `winget install Python.Python.3.12` rồi mở lại Terminal. Trên Windows dùng lệnh
+  `python` / `py -3` (không tồn tại `python3`).
 - Một trong các agent ở bảng dưới, bản có hỗ trợ Agent Skills (`SKILL.md`).
 
 ## Cài đặt (2 bước)
@@ -50,15 +53,18 @@ không xóa repo).
 vn-bridge-skills/
 ├── README.md
 ├── install.sh                 # symlink cho Linux/macOS/WSL
-├── install.ps1                # junction cho Windows
+├── install.ps1                # junction cho Windows (+ kiểm tra Python)
 └── skills/
     └── thiet-ke-cau-11823/    # skill bao quát (bản nháp test)
         ├── SKILL.md           # quy trình + nguyên tắc + bẫy thường gặp
         ├── references/
-        │   └── phan-2-3-tai-trong.md  # hệ số TCVN 11823-2/3:2017 đã đối chiếu bản gốc
+        │   ├── phan-2-3-tai-trong.md   # hệ số TCVN 11823-2/3:2017 đã đối chiếu bản gốc
+        │   ├── phan-4-phan-bo.md       # phân bố hoạt tải Phần 4 (Bảng 4-13, Điều 6.2.3)
+        │   └── thuyet-minh.md          # khuôn báo cáo + văn phong hồ sơ
         └── scripts/
-            ├── bridge_calc.py       # HL-93, tổ hợp tải, độ võng (Python 3, không phụ thuộc)
-            └── test_bridge_calc.py  # so với tính tay + kiểm hệ số khớp references
+            ├── bridge_calc.py       # HL-93, tổ hợp tải, võng, dist (hệ số phân bố g)
+            ├── distribution.py      # hệ số phân bố hoạt tải — Phần 4, Điều 6.2.2-6.2.3
+            └── test_*.py            # so tính tay + kiểm script khớp file tham chiếu
 ```
 
 Chạy test: `python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts`
@@ -67,7 +73,7 @@ Chạy test: `python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts`
 
 | Skill | Phạm vi | Trạng thái |
 |---|---|---|
-| `thiet-ke-cau-11823` | Tra cứu hệ số, tính sơ bộ tải trọng/kích thước, soạn đoạn thuyết minh theo TCVN 11823-3:2017 | Bản nháp |
+| `thiet-ke-cau-11823` | Tra cứu hệ số, tính sơ bộ tải trọng/kích thước, hệ số phân bố hoạt tải g (Phần 4), soạn đoạn thuyết minh theo TCVN 11823 | Bản nháp |
 
 Dự kiến tách khi bản nháp ổn định: `cau-tai-trong-11823` (tải & tổ hợp chi tiết),
 `cau-kiem-toan-dam` (dầm BTCT/DƯL, Phần 5), `cau-mo-tru-coc` (Phần 10–11),

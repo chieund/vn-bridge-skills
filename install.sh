@@ -30,4 +30,14 @@ for target in "${TARGETS[@]}"; do
     echo "Linked $name -> $target/$name"
   done
 done
+# Kiem tra Python 3.10+ - skill chay scripts/bridge_calc.py
+PY="$(command -v python3 || command -v python || true)"
+if [ -n "$PY" ] && "$PY" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null; then
+  echo "Python: $("$PY" --version 2>&1)"
+else
+  echo "CAN Python 3.10+ de chay bridge_calc.py (tim thay: ${PY:-khong co})." >&2
+  echo "  Linux/WSL: sudo apt install python3 | macOS: brew install python" >&2
+  echo "  Windows:   winget install Python.Python.3.12 (mo lai Terminal sau khi cai)" >&2
+fi
+
 echo "Xong. Mo lai session agent de no nhan skill moi."

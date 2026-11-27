@@ -39,4 +39,15 @@ foreach ($Target in $Targets) {
         Write-Host "Linked $($_.Name) -> $LinkPath"
     }
 }
+if (-not $Uninstall) {
+    # Kiem tra Python - skill chay scripts/bridge_calc.py; Windows mac dinh CHUA co Python san
+    $Py = Get-Command python -ErrorAction SilentlyContinue
+    if (-not $Py) { $Py = Get-Command py -ErrorAction SilentlyContinue }
+    if ($Py) {
+        Write-Host ("Python: " + (& $Py.Source --version 2>&1))
+    } else {
+        Write-Warning "May nay chua co Python - skill can Python 3.10+ de chay bridge_calc.py."
+        Write-Warning "Cai dat:  winget install Python.Python.3.12   (mo lai Terminal sau khi cai)"
+    }
+}
 Write-Host "Xong. Mo lai session agent de no nhan skill moi."

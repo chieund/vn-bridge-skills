@@ -1,4 +1,4 @@
-"""Checks that SKILL.md routes to every reference file and stays within frontmatter limits.
+"""Kiểm tra SKILL.md định tuyến tới đủ file tham chiếu và giữ frontmatter trong giới hạn.
 
 Run:  python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts
 """
@@ -15,7 +15,7 @@ SKILL_MD = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
 
 
 def referenced_files(skill_md: str) -> set[str]:
-    """Every `references/<name>.md` mentioned in SKILL.md."""
+    """Mọi `references/<ten>.md` được nhắc tới trong SKILL.md."""
     return set(re.findall(r"references/[\w.-]+\.md", skill_md))
 
 

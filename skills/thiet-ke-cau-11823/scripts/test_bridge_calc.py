@@ -1,7 +1,9 @@
-"""Tests for bridge_calc.py against hand calculations and the locked reference file.
+"""Test bridge_calc.py đối chiếu tính tay và file tham chiếu đã khóa số liệu.
 
 Run:  python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts
 """
+import contextlib
+import io
 import pathlib
 import sys
 import unittest
@@ -14,8 +16,8 @@ REFERENCE_DIR = HERE.parent / "references"
 REFERENCE = (REFERENCE_DIR / "phan-2-3-tai-trong.md").read_text(encoding="utf-8")
 
 
-class LockedCoefficientsMatchReference(unittest.TestCase):
-    """If a coefficient changes in the script, the reference file must say the same."""
+class HeSoKhopFileThamChieu(unittest.TestCase):
+    """Sửa hệ số trong script thì file tham chiếu phải nói đúng như nhau."""
 
     def test_values(self):
         self.assertEqual(t.TRUCK_AXLES, (35.0, 145.0, 145.0))
@@ -40,18 +42,18 @@ class LockedCoefficientsMatchReference(unittest.TestCase):
             self.assertIn(text, REFERENCE, f"reference file no longer contains {text!r}")
 
 
-class SimpleSpanHandCalcs(unittest.TestCase):
+class TinhTayDamGianDon(unittest.TestCase):
     L = 30.0
 
     def test_truck_moment_midspan(self):
-        # middle axle at midspan, rear spacing 4.3 m:
+        # Trục giữa đặt giữa nhịp, khoảng cách trục sau 4,3 m:
         # 145*7.5 + 145*15*10.7/30 + 35*10.7*15/30 = 1087.5 + 775.75 + 187.25
         m, s = t.vehicle_moment(self.L, 15.0, t.truck_configs())
         self.assertAlmostEqual(m, 2050.5, places=6)
         self.assertAlmostEqual(s, 4.3, places=6)
 
     def test_truck_absolute_max_moment(self):
-        # resultant theorem: 325/30*(15 - 1.455/2)^2 - 35*4.3 = 2056.3 kN·m
+        # Định lý hợp lực: 325/30*(15 - 1.455/2)^2 - 35*4.3 = 2056.3 kN·m
         r = t.hl93_simple_span(self.L)
         self.assertAlmostEqual(r["m_truck"], 2056.3, delta=0.5)
 
@@ -64,14 +66,14 @@ class SimpleSpanHandCalcs(unittest.TestCase):
         self.assertAlmostEqual(t.lane_support_shear(self.L), 9.3 * 30 / 2)
 
     def test_truck_support_shear(self):
-        # 145 at 0, 145 at 4.3, 35 at 8.6
+        # 145 kN tại 0, 145 kN tại 4.3, 35 kN tại 8.6
         expected = 145 + 145 * 25.7 / 30 + 35 * 21.4 / 30
         v, s = t.vehicle_support_shear(self.L, t.truck_configs())
         self.assertAlmostEqual(v, expected, places=6)
         self.assertAlmostEqual(s, 4.3, places=6)
 
     def test_axles_off_span_ignored(self):
-        # 5 m span: the truck cannot fit; only axles on the span count
+        # Nhịp 5 m: xe tải không lọt; chỉ trục nằm trong nhịp được tính
         m, _ = t.vehicle_moment(5.0, 2.5, t.truck_configs())
         self.assertAlmostEqual(m, 145 * 2.5 / 2, places=6)
 
@@ -82,7 +84,7 @@ class SimpleSpanHandCalcs(unittest.TestCase):
     def test_point_deflection_midspan(self):
         EI, P = 2.5e7, 100.0
         self.assertAlmostEqual(t._point_deflection(self.L, EI, 15.0, 15.0, P), P * 30 ** 3 / (48 * EI))
-        # Maxwell reciprocity
+        # Định lý hồi tương Maxwell–Betti
         self.assertAlmostEqual(t._point_deflection(self.L, EI, 10.0, 22.0, P),
                                t._point_deflection(self.L, EI, 22.0, 10.0, P))
 
@@ -113,6 +115,42 @@ class Combinations(unittest.TestCase):
     def test_deck_joint_im(self):
         r = t.combine("str1", dc=0, dw=0, truck=100, deck_joint=True)
         self.assertAlmostEqual(r["total"], 1.75 * 175)
+
+
+class LenhDist(unittest.TestCase):
+    """Lệnh dist gọi distribution.py và in báo cáo khớp tính tay (Bảng 6-13)."""
+
+    def _run(self, argv):
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            t.main(argv)
+        return buf.getvalue()
+
+    def test_moment_interior_k(self):
+        out = self._run(["dist", "--kind", "moment", "--place", "interior", "--section", "k",
+                         "--S", "2400", "--L", "30000", "--ts", "200", "--Kg", "5e11", "--Nb", "5"])
+        self.assertIn("Bảng 6, tr.44", out)
+        self.assertIn("g = 0.6547", out)
+
+    def test_shear_exterior_skew(self):  # Bảng 12 × Bảng 13: 0,6 × 1,0926 = 0,6556
+        out = self._run(["dist", "--kind", "shear", "--place", "exterior", "--section", "k",
+                         "--S", "2400", "--L", "30000", "--ts", "200", "--Kg", "5e11",
+                         "--Nb", "5", "--de", "300", "--skew", "30"])
+        self.assertIn("Bảng 12, tr.53", out)
+        self.assertIn("× 1.0926", out)
+        self.assertIn("g = 0.6556", out)
+
+    def test_out_of_range_exit_code(self):  # exit 1 — người gọi phải dùng phương pháp khác
+        with self.assertRaises(SystemExit) as cm:
+            self._run(["dist", "--kind", "moment", "--place", "interior", "--section", "d",
+                       "--S", "4500", "--L", "30000", "--Nc", "5"])
+        self.assertEqual(cm.exception.code, 1)
+
+    def test_missing_param_exit_code(self):  # exit 2 — thiếu tham số bắt buộc
+        with self.assertRaises(SystemExit) as cm:
+            self._run(["dist", "--kind", "moment", "--place", "interior", "--section", "k",
+                       "--S", "2400", "--L", "30000", "--ts", "200", "--Nb", "5"])
+        self.assertEqual(cm.exception.code, 2)
 
 
 if __name__ == "__main__":

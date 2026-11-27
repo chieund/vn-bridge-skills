@@ -1,49 +1,55 @@
 #!/usr/bin/env python3
-"""Preliminary road-bridge calculations per TCVN 11823:2017 (standard library only).
+"""Tính toán sơ bộ cầu đường bộ theo TCVN 11823:2017 (chỉ dùng thư viện chuẩn).
 
-Every coefficient below is locked to references/phan-2-3-tai-trong.md. If you change one
-here, change the reference file too — test_bridge_calc.py checks that they agree.
+Mọi hệ số dưới đây khóa theo references/phan-2-3-tai-trong.md. Nếu sửa một hệ số
+ở đây thì phải sửa cả file tham chiếu — test_bridge_calc.py kiểm tra hai file khớp nhau.
 
-Code, comments and CLI are in English; the printed report stays in Vietnamese
-because it is pasted straight into Vietnamese design calculation reports.
+Tên hàm và CLI giữ tiếng Anh; docstring/comment tiếng Việt; báo cáo in ra tiếng Việt
+vì dán thẳng vào thuyết minh tính toán.
 
-Commands:
-  hl93         Max moment / support shear from HL-93 on a simple span (one lane,
-               before IM, multiple presence factor m and distribution factor g)
-  combine      Factored effect for a limit state (Strength I, Service I/III,
-               Fatigue I/II), printed as the 4-line report format
-  deflection   Live-load deflection of a simple span vs L/800 or L/1000
+Lệnh:
+  hl93         Mô men / lực cắt gối lớn nhất do HL-93 trên dầm giản đơn (một làn,
+               chưa nhân IM, m và hệ số phân bố g)
+  combine      Tác dụng có tổ hợp hệ số cho một TTGH (Cường độ I, Sử dụng I/III,
+               Mỏi I/II), in theo khuôn báo cáo 4 dòng
+  deflection   Độ võng hoạt tải của dầm giản đơn, so với L/800 hoặc L/1000
+  dist         Hệ số phân bố hoạt tải g cho một dầm — Phần 4, Điều 6.2.2
+               (Bảng 6-13: mô men / lực cắt, dầm giữa / dầm biên, cầu chéo)
 
-Examples:
+Ví dụ:
   python3 bridge_calc.py hl93 --L 30
   python3 bridge_calc.py combine --limit-state str1 --dc 420 --dw 180 --truck 250 --lane 80 --resistance 2050
   python3 bridge_calc.py deflection --L 30 --EI 2.5e7 --g 0.5
+  python3 bridge_calc.py dist --kind moment --place interior --section k \
+          --S 2400 --L 30000 --ts 200 --Kg 5e11 --Nb 5          # đầu vào theo mm
 """
 import argparse
 import sys
 
-# ---------------------------------------------------------------------------
-# Locked coefficients — TCVN 11823-3:2017 (see references/phan-2-3-tai-trong.md)
-# ---------------------------------------------------------------------------
-TRUCK_AXLES = (35.0, 145.0, 145.0)       # kN, art. 6.1.2.2 (section C)
-TRUCK_FRONT_SPACING = 4.3                 # m, front axle -> first rear axle
-TRUCK_REAR_SPACING = (4.3, 9.0)           # m, variable rear-axle spacing
-TRUCK_REAR_SPACING_FATIGUE = 9.0          # m, fatigue truck (art. 6.1.4, section G)
-TANDEM_AXLES = (110.0, 110.0)             # kN, art. 6.1.2.3
-TANDEM_SPACING = 1.2                      # m
-LANE_LOAD = 9.3                           # kN/m, art. 6.1.2.4 — NO dynamic allowance
+import distribution as dp
 
-IM = {"normal": 33.0, "fatigue": 15.0, "deck-joint": 75.0}   # %, Table 10 (section D)
+# ---------------------------------------------------------------------------
+# Hệ số khóa — TCVN 11823-3:2017 (xem references/phan-2-3-tai-trong.md)
+# ---------------------------------------------------------------------------
+TRUCK_AXLES = (35.0, 145.0, 145.0)       # kN, Điều 6.1.2.2 (mục C)
+TRUCK_FRONT_SPACING = 4.3                 # m, trục trước -> trục sau thứ nhất
+TRUCK_REAR_SPACING = (4.3, 9.0)           # m, khoảng cách 2 trục sau thay đổi được
+TRUCK_REAR_SPACING_FATIGUE = 9.0          # m, xe tải mỏi (Điều 6.1.4, mục G)
+TANDEM_AXLES = (110.0, 110.0)             # kN, Điều 6.1.2.3
+TANDEM_SPACING = 1.2                      # m
+LANE_LOAD = 9.3                           # kN/m, Điều 6.1.2.4 — KHÔNG nhân xung kích
+
+IM = {"normal": 33.0, "fatigue": 15.0, "deck-joint": 75.0}   # %, Bảng 10 (mục D)
 
 
 def multiple_presence_factor(n_lanes):
-    """Table 7, art. 6.1.1.2 (section E)."""
+    """Bảng 7, Điều 6.1.1.2 (mục E)."""
     if n_lanes < 1:
         raise ValueError("number of loaded lanes must be >= 1")
     return {1: 1.20, 2: 1.00, 3: 0.85}.get(n_lanes, 0.65)
 
 
-# Tables 3 + 4 (sections A, B). dc/dw = (max, min).
+# Bảng 3 + Bảng 4 (mục A, B). dc/dw = (lớn nhất, nhỏ nhất).
 LIMIT_STATES = {
     "str1": dict(name="Cường độ I", dc=(1.25, 0.90), dw=(1.50, 0.65), ll=1.75, im="normal", fatigue=False),
     "ser1": dict(name="Sử dụng I", dc=(1.00, 1.00), dw=(1.00, 1.00), ll=1.00, im="normal", fatigue=False),
@@ -52,11 +58,11 @@ LIMIT_STATES = {
     "fat2": dict(name="Mỏi II", dc=(0.0, 0.0), dw=(0.0, 0.0), ll=0.75, im="fatigue", fatigue=True),
 }
 
-DEFLECTION_LIMITS = {"vehicle": 800, "pedestrian": 1000}   # L/..., art. 5.2.6.2 Part 2 (section F)
+DEFLECTION_LIMITS = {"vehicle": 800, "pedestrian": 1000}   # L/..., Điều 5.2.6.2 Phần 2 (mục F)
 
 
 # ---------------------------------------------------------------------------
-# Axle configurations: list of (relative position m, load kN), both directions
+# Cấu hình trục xe: danh sách (vị trí tương đối m, tải trọng kN), cả hai chiều chạy
 # ---------------------------------------------------------------------------
 def _both_directions(axles):
     length = axles[-1][0]
@@ -65,7 +71,7 @@ def _both_directions(axles):
 
 
 def truck_configs(axle_factor=1.0, rear_spacing=None, step=0.1):
-    """Design truck; rear_spacing=None sweeps 4.3 -> 9.0 m."""
+    """Xe tải thiết kế; rear_spacing=None quét khoảng cách 4.3 -> 9.0 m."""
     if rear_spacing is None:
         lo, hi = TRUCK_REAR_SPACING
         n = int(round((hi - lo) / step))
@@ -87,19 +93,19 @@ def tandem_configs(axle_factor=1.0):
 
 
 # ---------------------------------------------------------------------------
-# Simple span of length L
+# Dầm giản đơn nhịp L
 # ---------------------------------------------------------------------------
 def _point_moment(L, x, a, p):
-    """Moment at section x due to point load p at a."""
+    """Mô men tại mặt cắt x do tải trọng tập trung p đặt tại a."""
     if a < 0 or a > L:
         return 0.0
     return p * a * (L - x) / L if a <= x else p * x * (L - a) / L
 
 
 def vehicle_moment(L, x, configs):
-    """Max moment at section x. The influence line is piecewise linear, so the
-    maximum occurs with one axle exactly at the section -> try each axle.
-    Returns (moment, rear_spacing)."""
+    """Mô men lớn nhất tại mặt cắt x. Đường ảnh hưởng tuyến tính từng khúc nên
+    cực trị đạt khi một trục nằm đúng tại mặt cắt -> thử từng trục.
+    Trả về (mô men, khoảng cách trục sau)."""
     best = (0.0, None)
     for s, axles in configs:
         for xi, _ in axles:
@@ -115,7 +121,7 @@ def lane_moment(L, x):
 
 
 def vehicle_support_shear(L, configs):
-    """Shear at x = 0+: place each axle in turn right at the support."""
+    """Lực cắt tại x = 0+: đặt lần lượt từng trục xe sát ngay gối."""
     best = (0.0, None)
     for s, axles in configs:
         for xi, _ in axles:
@@ -130,7 +136,7 @@ def lane_support_shear(L):
 
 
 def _point_deflection(L, EI, x, a, p):
-    """Deflection at x due to point load p at a (simple span), in m."""
+    """Độ võng tại x do tải trọng tập trung p tại a (dầm giản đơn), đơn vị m."""
     if a < 0 or a > L:
         return 0.0
     if x <= a:
@@ -141,7 +147,7 @@ def _point_deflection(L, EI, x, a, p):
 
 
 def vehicle_deflection(L, EI, x, configs, n_steps=400):
-    """Max deflection at x, sweeping the vehicle across the span."""
+    """Độ võng lớn nhất tại x, quét xe chạy dọc nhịp."""
     best = 0.0
     for _, axles in configs:
         length = axles[-1][0]
@@ -157,7 +163,7 @@ def lane_deflection(L, EI, x):
 
 
 # ---------------------------------------------------------------------------
-# Formatting (Vietnamese report style: dot decimal, space thousands separator)
+# Định dạng đầu ra — kiểu thuyết minh VN (thập phân dấu chấm, hàng nghìn ngăn cách bằng dấu cách)
 # ---------------------------------------------------------------------------
 def num(v, d=1):
     """1516.875 -> '1 516.9'."""
@@ -173,13 +179,13 @@ def short(v):
 
 
 # ---------------------------------------------------------------------------
-# Calculations (pure functions, used by the CLI and the tests)
+# Tính toán — các hàm thuần số, dùng chung cho CLI và test
 # ---------------------------------------------------------------------------
 def hl93_simple_span(L, axle_factor=1.0, n_sections=500):
     truck, tandem = truck_configs(axle_factor), tandem_configs(axle_factor)
     im = IM["normal"]
     best = None
-    for i in range(n_sections // 2 + 1):          # symmetric -> half span only
+    for i in range(n_sections // 2 + 1):          # đối xứng -> chỉ quét nửa nhịp
         x = L * i / n_sections
         mt, s = vehicle_moment(L, x, truck)
         md, _ = vehicle_moment(L, x, tandem)
@@ -214,8 +220,8 @@ def combine(limit_state, dc, dw, truck, lane=0.0, m=1.0, eta=1.0, use_min=False,
 
 
 def live_load_deflection(L, EI, g=1.0, im=None, axle_factor=1.0, n_sections=100):
-    """Returns ((delta_a, x_a), (delta_b, x_b)) in m:
-    (a) design truck alone, (b) 25% design truck + lane load; both incl. IM."""
+    """Trả về ((delta_a, x_a), (delta_b, x_b)) đơn vị m:
+    (a) xe tải thiết kế đơn lẻ, (b) 25% xe tải + tải làn; cả hai đã gồm IM."""
     im = IM["normal"] if im is None else im
     truck = truck_configs(axle_factor, step=0.5)
     best_a = best_b = (0.0, 0.0)
@@ -228,7 +234,7 @@ def live_load_deflection(L, EI, g=1.0, im=None, axle_factor=1.0, n_sections=100)
 
 
 # ---------------------------------------------------------------------------
-# CLI commands (report text in Vietnamese)
+# Các lệnh CLI — văn bản báo cáo in ra bằng tiếng Việt
 # ---------------------------------------------------------------------------
 def cmd_hl93(a):
     L, k = a.L, a.axle_factor
@@ -304,43 +310,138 @@ def cmd_deflection(a):
           "EI tiết diện liên hợp do người dùng cung cấp.")
 
 
+# Bảng lệnh dist — tra theo (loại nội lực, vị trí dầm): Bảng 6/8/11/12
+DIST_FUNCTIONS = {
+    ("moment", "interior"): dp.moment_interior,
+    ("moment", "exterior"): dp.moment_exterior,
+    ("shear", "interior"): dp.shear_interior,
+    ("shear", "exterior"): dp.shear_exterior,
+}
+
+
+def cmd_dist(a):
+    """In báo cáo hệ số phân bố g cho một dầm (Phần 4, Điều 6.2.2)."""
+    p = {}
+    for name in ("S", "L", "ts", "tg", "Kg", "Nb", "Nc", "NL", "d", "b", "I", "J",
+                 "mu", "W", "de", "We", "theta"):
+        v = getattr(a, name)
+        if v is not None:
+            p[name] = v
+    if a.g_int is not None:  # g dầm trong điền tay khi Bảng 6/11 không phủ
+        p["g_int"] = a.g_int
+    try:
+        r = DIST_FUNCTIONS[(a.kind, a.place)](a.section, **p)
+    except dp.OutOfRange as err:
+        print(f"NGOÀI PHẠM VI: {err}")
+        print("→ Dùng nguyên tắc đơn bẩy hoặc phân tích chính xác theo Điều 6.3, Phần 4.")
+        sys.exit(1)
+    except TypeError as err:
+        print(f"THIẾU ĐẦU VÀO: {err}")
+        sys.exit(2)
+    f_cheo = None
+    if a.skew is not None:  # hiệu chỉnh cầu chéo — Bảng 9 (mô men) / 13 (lực cắt)
+        try:
+            f_cheo = (dp.skew_moment(a.section, a.skew, **p) if a.kind == "moment"
+                      else dp.skew_shear(a.section, a.skew, **p))
+        except dp.OutOfRange as err:
+            print(f"NGOÀI PHẠM VI CẦU CHÉO: {err}")
+            sys.exit(1)
+        except TypeError as err:
+            print(f"THIẾU ĐẦU VÀO cho hiệu chỉnh cầu chéo (Bảng 9/13): {err}")
+            sys.exit(2)
+    loai = "Mô men" if a.kind == "moment" else "Lực cắt"
+    vi_tri = "dầm giữa" if a.place == "interior" else "dầm biên"
+    print(f"Hệ số phân bố hoạt tải — {loai.lower()}, {vi_tri}, mặt cắt '{a.section}' (Bảng 4)")
+    print(f"Đơn vị đầu vào: mm, độ. Nguồn: TCVN 11823-4:2017, {r.clause}")
+    for ten, gt in r.parts.items():
+        mark = "   <- khống chế" if ten == r.governing else ""
+        print(f"  {ten}: g = {num(gt, 4)}{mark}")
+    g = r.g if f_cheo is None else r.g * f_cheo
+    if f_cheo is not None:
+        bang = "Bảng 9" if a.kind == "moment" else "Bảng 13, tại góc tù"
+        print(f"Hiệu chỉnh cầu chéo θ = {short(a.skew)}° ({bang}): × {num(f_cheo, 4)}")
+    print(f"Kết quả:   g = {num(g, 4)}   (trường hợp khống chế: {r.governing})")
+    if r.governing in ("1 làn", "đòn bẩy"):
+        print(f"Mỏi: g_mỏi = g(một làn)/1,20 = {num(g / dp.M_ONE_LANE, 4)}")
+    print("Lưu ý: g đã chứa hệ số làn m — bước tổ hợp KHÔNG nhân thêm m.")
+    print(f"Bước tiếp: bridge_calc.py combine --limit-state str1 ... --m {num(g, 4)}")
+
+
 def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")   # Windows consoles
-    p = argparse.ArgumentParser(description="Preliminary road-bridge calculations per TCVN 11823:2017")
+        sys.stdout.reconfigure(encoding="utf-8")   # bảng điều khiển Windows cần UTF-8
+    p = argparse.ArgumentParser(
+        description="Tính toán sơ bộ cầu đường bộ theo TCVN 11823:2017")
     sub = p.add_subparsers(dest="command", required=True)
 
-    h = sub.add_parser("hl93", help="HL-93 moment / support shear on a simple span (one lane)")
-    h.add_argument("--L", type=float, required=True, help="span length (m)")
+    h = sub.add_parser("hl93", help="Mô men / lực cắt gối HL-93 trên dầm giản đơn (một làn)")
+    h.add_argument("--L", type=float, required=True, help="nhịp dầm (m)")
     h.add_argument("--axle-factor", type=float, default=1.0, choices=[1.0, 0.65, 0.5],
-                   help="axle load reduction for road class IV and below")
+                   help="giảm tải trọng trục cho đường cấp IV trở xuống")
     h.set_defaults(func=cmd_hl93)
 
-    c = sub.add_parser("combine", help="Factored load combination, printed as the 4-line report")
+    c = sub.add_parser("combine", help="Tổ hợp tải trọng có hệ số, in theo khuôn báo cáo 4 dòng")
     c.add_argument("--limit-state", choices=list(LIMIT_STATES), required=True)
-    c.add_argument("--dc", type=float, default=0.0, help="effect of DC")
-    c.add_argument("--dw", type=float, default=0.0, help="effect of DW")
-    c.add_argument("--truck", type=float, required=True, help="effect of design truck/tandem (WITHOUT IM)")
-    c.add_argument("--lane", type=float, default=0.0, help="effect of design lane load")
+    c.add_argument("--dc", type=float, default=0.0, help="tác dụng của DC")
+    c.add_argument("--dw", type=float, default=0.0, help="tác dụng của DW")
+    c.add_argument("--truck", type=float, required=True,
+                   help="tác dụng của xe tải thiết kế / tandem (CHƯA nhân IM)")
+    c.add_argument("--lane", type=float, default=0.0, help="tác dụng của tải trọng làn")
     g = c.add_mutually_exclusive_group()
     g.add_argument("--m", type=float, default=1.0,
-                   help="multiple presence factor m, or distribution factor g (already includes m)")
-    g.add_argument("--lanes", type=int, help="look up m from Table 7 by number of loaded lanes")
-    c.add_argument("--eta", type=float, default=1.0, help="load modifier η")
-    c.add_argument("--use-min", action="store_true", help="use minimum γp (DC 0.90, DW 0.65)")
-    c.add_argument("--deck-joint", action="store_true", help="deck joint: IM = 75%%")
-    c.add_argument("--resistance", type=float, help="factored resistance φRn for the pass/fail verdict")
-    c.add_argument("--symbol", default="M", help="effect symbol (M, V, ...)")
-    c.add_argument("--unit", default="kN·m")
+                   help="hệ số làn m, hoặc hệ số phân bố g (đã chứa m)")
+    g.add_argument("--lanes", type=int, help="tra m theo Bảng 7 theo số làn chịu tải")
+    c.add_argument("--eta", type=float, default=1.0, help="hệ số điều chỉnh tải η")
+    c.add_argument("--use-min", action="store_true", help="dùng γp nhỏ nhất (DC 0,90, DW 0,65)")
+    c.add_argument("--deck-joint", action="store_true", help="khe nối bản mặt cầu: IM = 75%%")
+    c.add_argument("--resistance", type=float,
+                   help="sức kháng φRn để kết luận ĐẠT / KHÔNG ĐẠT")
+    c.add_argument("--symbol", default="M", help="ký hiệu nội lực (M, V, ...)")
+    c.add_argument("--unit", default="kN·m", help="đơn vị nội lực")
     c.set_defaults(func=cmd_combine)
 
-    d = sub.add_parser("deflection", help="Live-load deflection of a simple span")
-    d.add_argument("--L", type=float, required=True, help="span length (m)")
-    d.add_argument("--EI", type=float, required=True, help="flexural stiffness (kN·m²)")
-    d.add_argument("--g", type=float, default=1.0, help="distribution factor for one girder")
-    d.add_argument("--pedestrian", action="store_true", help="vehicle and/or pedestrian load → L/1000")
-    d.add_argument("--axle-factor", type=float, default=1.0, choices=[1.0, 0.65, 0.5])
-    d.set_defaults(func=cmd_deflection)
+    f = sub.add_parser("deflection", help="Độ võng hoạt tải của dầm giản đơn")
+    f.add_argument("--L", type=float, required=True, help="nhịp dầm (m)")
+    f.add_argument("--EI", type=float, required=True, help="độ cứng chống uốn (kN·m²)")
+    f.add_argument("--g", type=float, default=1.0, help="hệ số phân bố cho một dầm")
+    f.add_argument("--pedestrian", action="store_true",
+                   help="có tải người đi bộ → giới hạn L/1000")
+    f.add_argument("--axle-factor", type=float, default=1.0, choices=[1.0, 0.65, 0.5])
+    f.set_defaults(func=cmd_deflection)
+
+    x = sub.add_parser("dist", help="Hệ số phân bố hoạt tải g cho một dầm (Phần 4, Điều 6.2.2)")
+    x.add_argument("--kind", choices=["moment", "shear"], required=True,
+                   help="mô men hay lực cắt")
+    x.add_argument("--place", choices=["interior", "exterior"], required=True,
+                   help="dầm giữa hay dầm biên")
+    x.add_argument("--section", required=True,
+                   help="loại mặt cắt theo Bảng 4: a e k i j d b c f g h "
+                        "steel-grid steel-box corrugated")
+    x.add_argument("--S", type=float, help="bước dầm (mm)")
+    x.add_argument("--L", type=float, help="nhịp lấy theo Bảng 5 (mm)")
+    x.add_argument("--ts", type=float, help="bề rộng bản bê tông Ts (mm)")
+    x.add_argument("--tg", type=float, help="bề dày bản mặt Tg (mm)")
+    x.add_argument("--Kg", type=float, help="tham số độ cứng dọc Kg (mm⁴)")
+    x.add_argument("--Nb", type=int, help="số dầm")
+    x.add_argument("--Nc", type=int, help="số ngăn hộp bê tông")
+    x.add_argument("--NL", type=int, help="số làn thiết kế")
+    x.add_argument("--d", type=float, help="chiều cao dầm (mm)")
+    x.add_argument("--b", type=float, help="bề rộng dầm hộp (mm)")
+    x.add_argument("--I", type=float, help="mô men quán tính (mm⁴)")
+    x.add_argument("--J", type=float, help="mô men chống xoắn St. Venant (mm⁴)")
+    x.add_argument("--mu", type=float, help="hệ số Poisson")
+    x.add_argument("--W", type=float, help="bề rộng cầu mép-to-mép (mm)")
+    x.add_argument("--de", type=float,
+                   help="khoảng cách từ tim bụng dầm biên tới bó vỉa/lan can (mm, dương vào trong)")
+    x.add_argument("--We", type=float,
+                   help="nửa khoảng cách bụng dầm biên cộng phần nhô (mm)")
+    x.add_argument("--theta", type=float,
+                   help="góc nghiêng hàng h của Bảng 6 (độ) — KHÔNG phải góc chéo")
+    x.add_argument("--skew", type=float,
+                   help="góc chéo cầu (độ) — nhân hệ số Bảng 9 (mô men) / Bảng 13 (lực cắt)")
+    x.add_argument("--g-int", type=float,
+                   help="ghi đè g dầm trong (≥2 làn) khi Bảng 6/11 ngoài phạm vi")
+    x.set_defaults(func=cmd_dist)
 
     a = p.parse_args(argv)
     if getattr(a, "lanes", None) is not None:
