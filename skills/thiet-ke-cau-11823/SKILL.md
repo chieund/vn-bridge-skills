@@ -31,6 +31,7 @@ Trước khi trả lời, xác định câu hỏi thuộc dòng nào và **đọ
 | Câu hỏi về | Đọc file | Lệnh script |
 |---|---|---|
 | Hệ số Phần 2–3: tải HL-93, IM, hệ số làn m, γ tổ hợp, lực hãm BR / ly tâm CE / gió, giới hạn võng | `references/phan-2-3-tai-trong.md` | `hl93`, `combine`, `deflection` |
+| Phân bố hoạt tải cho từng dầm (g mô men / lực cắt, dầm giữa / dầm biên, cầu chéo, dầm ngang, dải tương đương cầu bản) | `references/phan-4-phan-bo.md` | `dist` |
 | Soạn / định dạng đoạn thuyết minh, văn phong hồ sơ | `references/thuyet-minh.md` | chạy lệnh tính trước, dán kết quả vào khuôn 4 dòng |
 
 Bài toán ngoài phạm vi bản nháp (động đất chi tiết, móng cọc chi tiết, dây văng, đúc hẫng...)

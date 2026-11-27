@@ -35,5 +35,19 @@ class SkillRouting(unittest.TestCase):
         self.assertLessEqual(len(desc), 1024)
 
 
+class Part4Reference(unittest.TestCase):
+    TEXT = (REFERENCE_DIR / "phan-4-phan-bo.md").read_text(encoding="utf-8")
+
+    def test_all_tables_present_with_page(self):
+        for t, page in [(4, 40), (5, 42), (6, 44), (7, 46), (8, 48), (9, 49),
+                        (10, 50), (11, 51), (12, 53), (13, 54)]:
+            self.assertRegex(self.TEXT, rf"Bảng {t}\b.*tr\.\s*{page}")
+
+    def test_clauses(self):
+        for c in ["6.2.2.1", "6.2.2.2.1", "6.2.2.2.2", "6.2.2.2.3", "6.2.2.2.4",
+                  "6.2.2.2.5", "6.2.2.3.1", "6.2.2.3.2", "6.2.2.3.3", "6.2.3"]:
+            self.assertIn(c, self.TEXT)
+
+
 if __name__ == "__main__":
     unittest.main()
