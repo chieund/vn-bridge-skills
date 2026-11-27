@@ -1,6 +1,6 @@
 """Kiểm tra SKILL.md định tuyến tới đủ file tham chiếu và giữ frontmatter trong giới hạn.
 
-Run:  python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts
+Run:  python3 -m unittest discover -s skills/thietkecau-11823/scripts
 """
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ class SkillRouting(unittest.TestCase):
 
     def test_frontmatter(self):
         fm = SKILL_MD.split("---")[1]
-        self.assertRegex(fm, r"(?m)^name: thiet-ke-cau-11823$")
+        self.assertRegex(fm, r"(?m)^name: thietkecau-11823$")
         desc = re.search(r"(?m)^description: (.*)$", fm).group(1)
         self.assertLessEqual(len(desc), 1024)
 

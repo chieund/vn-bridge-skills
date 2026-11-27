@@ -1,6 +1,6 @@
 """Test rc_flexure.py đối chiếu tính tay từ các phương trình đã phiên (tr.40-44).
 
-Run:  python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts
+Run:  python3 -m unittest discover -s skills/thietkecau-11823/scripts
 """
 import pathlib
 import sys
