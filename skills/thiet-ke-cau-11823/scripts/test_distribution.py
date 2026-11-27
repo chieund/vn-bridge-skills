@@ -1,6 +1,6 @@
 """Kiểm tra distribution.py đối chiếu tính tay từ references/phan-4-phan-bo.md.
 
-Run:  python3 -m unittest discover -s skills/thietkecau-11823/scripts
+Run:  python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts
 """
 import pathlib
 import sys

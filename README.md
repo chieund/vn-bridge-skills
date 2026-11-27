@@ -35,15 +35,15 @@ Hai thư mục này đủ cho cả 5 agent:
 OpenCode đọc cả hai thư mục nên thấy skill hai lần. Cả hai bản trỏ về cùng một thư mục
 trong repo nên nội dung giống hệt, không ảnh hưởng.
 
-Muốn dùng riêng cho một dự án: copy hoặc symlink `skills/thietkecau-11823` vào
+Muốn dùng riêng cho một dự án: copy hoặc symlink `skills/thiet-ke-cau-11823` vào
 `.agents/skills/` (Codex, Gemini, Copilot, OpenCode) hoặc `.claude/skills/` (Claude Code)
 trong dự án đó. Muốn thêm đích khác cho cài đặt toàn máy, sửa mảng `TARGETS` trong script.
 
-Repo theo mảng cầu đường (chuẩn bị thêm `thietkeduong-4054`, `thietkecau-22tcn272`): truyền tên skill để cài chọn lọc.
+Repo theo mảng cầu đường (chuẩn bị thêm `thiet-ke-duong-4054`, `thiet-ke-cau-22tcn-272`): truyền tên skill để cài chọn lọc.
 
 ```bash
 ./install.sh --list                    # xem skill có trong repo (Windows: .\install.ps1 -List)
-./install.sh thietkecau-11823        # chỉ skill này (Windows: .\install.ps1 -Only thietkecau-11823)
+./install.sh thiet-ke-cau-11823        # chỉ skill này (Windows: .\install.ps1 -Only thiet-ke-cau-11823)
 ```
 
 Không truyền tên = cài tất cả — cũng chẳng nặng: khi câu hỏi chưa khớp, agent chỉ "thấy"
@@ -62,11 +62,11 @@ không xóa repo).
 
 | Skill | Phạm vi | Trạng thái |
 |---|---|---|
-| `thietkecau-11823` | Tra cứu hệ số, tính sơ bộ tải trọng/kích thước, hệ số phân bố hoạt tải g (Phần 4), soạn đoạn thuyết minh theo TCVN 11823 | Bản nháp |
+| `thiet-ke-cau-11823` | Tra cứu hệ số, tính sơ bộ tải trọng/kích thước, hệ số phân bố hoạt tải g (Phần 4), soạn đoạn thuyết minh theo TCVN 11823 | Bản nháp |
 
 Nguyên tắc tổ chức: **một chuẩn = một skill** — trọn TCVN 11823 (các Phần 2→14) nằm trong
-`thietkecau-11823`, phân Phần ở cấp `references/`, không tách theo Phần. Chỉ tách khi một
-thành phần thật sự dùng chéo nhiều mảng (ví dụ khuôn thuyết minh → `thuyetminhcau`).
+`thiet-ke-cau-11823`, phân Phần ở cấp `references/`, không tách theo Phần. Chỉ tách khi một
+thành phần thật sự dùng chéo nhiều mảng (ví dụ khuôn thuyết minh → `thuyet-minh-cau`).
 
 ## Nguyên tắc của bộ skill
 
@@ -77,12 +77,13 @@ thành phần thật sự dùng chéo nhiều mảng (ví dụ khuôn thuyết m
    kiểm tra trực tiếp bản chuẩn, nghiêm cấm suy diễn.
 3. **Kỹ sư duyệt cuối**: output là bản nháp kỹ thuật, không thay chữ ký chủ trì thiết kế.
 4. Thêm skill mới: tạo `skills/<ten-skill>/SKILL.md` rồi chạy lại `install.sh`.
-   Tên viết thường, không dấu, theo khuôn `<chủđề+mảng liền mạch>-<mã chuẩn>`:
-   - Cụm chủ đề đọc theo đúng ngữ pháp Việt ("thiết kế cầu", "thi công đường"), viết liền
-     không dấu; **gạch nối duy nhất tách chủ đề với mã chuẩn**: `thietkecau-11823`,
-     `thicongcau-4447`, `thicongduong-9357`.
-   - Mã chuẩn: TCVN lấy số; chuẩn Bộ giữ nhãn (`thietkecau-22tcn272`). Skill không gắn một
-     mã chuẩn cụ thể (ví dụ khuôn thuyết minh) chỉ có cụm chủ đề, không code: `thuyetminhcau`.
+   Tên viết thường, không dấu, kebab **mọi từ** (đúng đặc tả Agent Skills), khuôn
+   `<chủ-đề>-<mảng>-<mã-chuẩn>`:
+   - Ví dụ: `thiet-ke-cau-11823` · `thiet-ke-duong-4054` · `thi-cong-cau-4447`.
+   - Mã chuẩn là token cuối (số, hoặc nhãn chuẩn Bộ tách từng token: `thiet-ke-cau-22tcn-272`).
+     Skill không gắn một mã chuẩn (khuôn thuyết minh) bỏ phần code: `thuyet-minh-cau`.
+   - Không tự nhét namespace kiểu `repo:ten` vào tên — dấu `:` sai đặc tả; marketplace plugin
+     tự thêm prefix lúc cài đặt.
    - **Mỗi chuẩn một skill riêng** — không gộp nhiều chuẩn vào một skill (số liệu dễ lẫn,
      như TCVN 11823 vs 22TCN 272-01). Ngược lại, một chuẩn (kể cả bộ nhiều phần như
      11823-1→-14) giữ trong MỘT skill, phân phần ở cấp `references/`.

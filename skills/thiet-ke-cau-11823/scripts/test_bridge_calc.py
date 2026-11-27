@@ -1,6 +1,6 @@
 """Test bridge_calc.py đối chiếu tính tay và file tham chiếu đã khóa số liệu.
 
-Run:  python3 -m unittest discover -s skills/thietkecau-11823/scripts
+Run:  python3 -m unittest discover -s skills/thiet-ke-cau-11823/scripts
 """
 import contextlib
 import io

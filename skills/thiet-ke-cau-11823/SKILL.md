@@ -1,5 +1,5 @@
 ---
-name: thietkecau-11823
+name: thiet-ke-cau-11823
 description: Trợ lý thiết kế sơ bộ và tra cứu tiêu chuẩn TCVN 11823:2017 (cầu đường bộ Việt Nam) — hệ số khóa sẵn theo văn bản gốc của chuẩn. Dùng khi người dùng hỏi về tải trọng HL-93, hệ số xung kích IM, hệ số làn m, tổ hợp tải trọng (Cường độ/Sử dụng/Đặc biệt/Mỏi), hệ số phân bố hoạt tải cho từng dầm (dầm giữa, dầm biên, cầu chéo), hệ số sức kháng φ và giới hạn biến dạng kết cấu bê tông (Phần 5), chọn sơ bộ kích thước dầm/bản mặt cầu, kiểm tra độ võng, hoặc cần viết đoạn thuyết minh tính toán cầu đường bộ theo TCVN. Các từ khóa: TCVN 11823, cầu đường bộ, HL-93, Super-T, dầm I, bản mặt cầu, hệ số phân bố, dầm biên, cầu chéo, hệ số sức kháng, φ, bê tông dự ứng lực, 22TCN 272.
 ---
 
