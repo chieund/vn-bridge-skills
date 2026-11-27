@@ -1,6 +1,6 @@
 ---
 name: thiet-ke-cau-11823
-description: Trợ lý thiết kế sơ bộ và tra cứu tiêu chuẩn TCVN 11823:2017 (cầu đường bộ Việt Nam) — hệ số khóa sẵn theo văn bản gốc của chuẩn. Dùng khi người dùng hỏi về tải trọng HL-93, hệ số xung kích IM, hệ số làn m, tổ hợp tải trọng (Cường độ/Sử dụng/Đặc biệt/Mỏi), hệ số phân bố hoạt tải cho từng dầm (dầm giữa, dầm biên, cầu chéo), chọn sơ bộ kích thước dầm/bản mặt cầu, kiểm tra độ võng, hoặc cần viết đoạn thuyết minh tính toán cầu đường bộ theo TCVN. Các từ khóa: TCVN 11823, cầu đường bộ, HL-93, Super-T, dầm I, bản mặt cầu, hệ số phân bố, dầm biên, cầu chéo, 22TCN 272.
+description: Trợ lý thiết kế sơ bộ và tra cứu tiêu chuẩn TCVN 11823:2017 (cầu đường bộ Việt Nam) — hệ số khóa sẵn theo văn bản gốc của chuẩn. Dùng khi người dùng hỏi về tải trọng HL-93, hệ số xung kích IM, hệ số làn m, tổ hợp tải trọng (Cường độ/Sử dụng/Đặc biệt/Mỏi), hệ số phân bố hoạt tải cho từng dầm (dầm giữa, dầm biên, cầu chéo), hệ số sức kháng φ và giới hạn biến dạng kết cấu bê tông (Phần 5), chọn sơ bộ kích thước dầm/bản mặt cầu, kiểm tra độ võng, hoặc cần viết đoạn thuyết minh tính toán cầu đường bộ theo TCVN. Các từ khóa: TCVN 11823, cầu đường bộ, HL-93, Super-T, dầm I, bản mặt cầu, hệ số phân bố, dầm biên, cầu chéo, hệ số sức kháng, φ, bê tông dự ứng lực, 22TCN 272.
 ---
 
 # Thiết kế cầu đường bộ theo TCVN 11823:2017 (bản nháp bao quát)
@@ -32,6 +32,7 @@ Trước khi trả lời, xác định câu hỏi thuộc dòng nào và **đọ
 |---|---|---|
 | Hệ số Phần 2–3: tải HL-93, IM, hệ số làn m, γ tổ hợp, lực hãm BR / ly tâm CE / gió, giới hạn võng | `references/phan-2-3-tai-trong.md` | `hl93`, `combine`, `deflection` |
 | Phân bố hoạt tải cho từng dầm (g mô men / lực cắt, dầm giữa / dầm biên, cầu chéo, dầm ngang, dải tương đương cầu bản), xe quá tải cấp phép | `references/phan-4-phan-bo.md` | `dist`, `special` |
+| Kết cấu bê tông Phần 5: hệ số sức kháng φ theo chế độ phá hoại, φ cắt/xoắn theo loại bê tông, giới hạn biến dạng εcu/εcl/εtl, khối chữ nhật α1/β1, ngưỡng mỏi (ΔF)TH mối nối cáp DƯL | `references/phan-5-betong.md` | tra hệ số — chưa có lệnh tính nội lực dầm |
 | Soạn / định dạng đoạn thuyết minh, văn phong hồ sơ | `references/thuyet-minh.md` | chạy lệnh tính trước, dán kết quả vào khuôn 4 dòng |
 
 Bài toán ngoài phạm vi bản nháp (động đất chi tiết, móng cọc chi tiết, dây văng, đúc hẫng...)
@@ -124,7 +125,12 @@ Số liệu của từng Phần nằm trong file tham chiếu riêng (bảng đ�
   Riêng kiểm tra **mặt cắt cứng** dầm biên có vách ngăn (tr.47): Phần 4 chỉ nêu yêu
   cầu, KHÔNG in công thức; `distribution.rigid_exterior_g()` cho giá trị chặn dưới
   theo tĩnh học của giả thiết đó — trích dẫn vào hồ sơ phải ghi rõ nguồn diễn giải.
-- **Phần 5, 10, 11, 14** (kết cấu bê tông, mố, mố trụ móng, gối khe) chưa đưa hệ số
-  vào bản nháp này (đang mở rộng) → hỏi tới đâu thành thật tới đó.
+- **Phần 5** — TCVN 11823-5:2017: đợt 1 đã khóa hệ số sức kháng φ (Điều 5.4.2.1, tr.30–31),
+  giới hạn biến dạng (Điều 7.2.2, tr.39), khối ứng suất chữ nhật α1/β1 (tr.40), ngưỡng mỏi
+  mối nối DƯL (Bảng 2, tr.30) trong `references/phan-5-betong.md`. Công thức lực kháng uốn
+  (Điều 7.3.2), lực cắt (Điều 8.3), giới hạn vết nứt CHƯA khóa — hỏi tới đâu soi bản gốc
+  tới đó, chưa code.
+- **Phần 10, 11, 14** (móng, mố trụ, gối khe) chưa đưa hệ số vào bản nháp này (đang mở rộng)
+  → hỏi tới đâu thành thật tới đó.
 - Lộ trình tách skill chuyên sâu khi bản nháp ổn định: `cau-tai-trong-11823`,
   `cau-kiem-toan-dam`, `cau-mo-tru-coc`, `cau-thuyet-minh`.

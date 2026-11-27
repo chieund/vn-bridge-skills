@@ -2,7 +2,7 @@
 
 > Số liệu dưới đây **chép từ ảnh trang** bản gốc (150 dpi), không chép từ text trích máy
 > (text bị vỡ phân số/số mũ). Trang in = trang PDF + 1. Nguồn PDF cục bộ, không commit:
-> `/home/chieund/project/dxf-parser/fixtures/TCVN11823_Phan 4_Phan-tich-va-danh-gia-ket-cau.pdf`
+> https://cokhicongtrinh.com.vn/upload/files/TCVN11823_Phan%204_Phan-tich-va-danh-gia-ket-cau.pdf
 > Đơn vị trong công thức Phần 4: **mm, mm², mm⁴, độ** — đúng như bản in.
 > `g` = hệ số phân bố hoạt tải đại diện **số làn thiết kế**; g đã chứa hệ số làn m
 > (Điều 6.1.1.2 Phần 3, tr.37) → dùng cho mỏi phải chia lại **1,20** (xem mục K).
