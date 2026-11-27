@@ -66,7 +66,12 @@ Dự kiến tách khi bản nháp ổn định: `cau-tai-trong-11823` (tải & t
    kiểm tra trực tiếp bản chuẩn, nghiêm cấm suy diễn.
 3. **Kỹ sư duyệt cuối**: output là bản nháp kỹ thuật, không thay chữ ký chủ trì thiết kế.
 4. Thêm skill mới: tạo `skills/<ten-skill>/SKILL.md` rồi chạy lại `install.sh`.
-   Tên viết thường, không dấu, gạch nối, tiền tố `cau-` hoặc `thiet-ke-cau-`.
+   Tên viết thường, không dấu, gạch nối, theo khuôn `<mảng>-<mã chuẩn>`:
+   - Tiền tố mảng: `cau-`, `duong-`, `dandung-`, `thuy-` (gồm thủy lợi + công trình thủy,
+     không tách hai họ chồng nhau), `kientruc-`... Một mảng = một tiền tố.
+   - Mã chuẩn: TCVN lấy số không (`cau-11823`); QCVN giữ nhãn (`kientruc-qcvn06`).
+   - **Mỗi chuẩn một skill riêng** — không gộp nhiều chuẩn vào một skill (số liệu dễ lẫn
+     giữa chuẩn, như BTCT cầu 11823-5 vs BTCT dân dụng 5574).
 
 ## Cập nhật
 
