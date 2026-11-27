@@ -179,11 +179,21 @@ class ExteriorMoment(unittest.TestCase):
         d.moment_exterior("k", de=-300, **self.P)
         d.moment_exterior("k", de=1700, **self.P)
 
-    def test_aek_de_out_of_range(self):
+    def test_aek_de_positive_out_of_range(self):
         with self.assertRaises(d.OutOfRange):
             d.moment_exterior("k", de=1800, **self.P)
-        with self.assertRaises(d.OutOfRange):
-            d.moment_exterior("k", de=-400, **self.P)
+
+    # Ghi chú tr.47: de âm ngoài phạm vi -> kẹp giới hạn -1,0 m (diễn giải)
+    def test_aek_negative_de_beyond_table(self):  # de=-400: ngoài [-300..1700] nhưng vẫn dùng được
+        r = d.moment_exterior("k", de=-400, **self.P)
+        self.assertAlmostEqual(r.parts["≥2 làn"], 0.410572, places=5)
+        self.assertEqual(r.governing, "≥2 làn")
+
+    def test_aek_negative_de_floored(self):  # de=-1500 -> kẹp tại -1000
+        r1500 = d.moment_exterior("k", de=-1500, **self.P)
+        r1000 = d.moment_exterior("k", de=-1000, **self.P)
+        self.assertAlmostEqual(r1500.g, r1000.g, places=12)
+        self.assertAlmostEqual(r1000.parts["≥2 làn"], 0.270286, places=5)
 
     def test_aek_g_int_override(self):  # truyền g_int -> không cần tham số dầm trong
         r = d.moment_exterior("k", S=2400, de=300, g_int=0.8)
@@ -214,6 +224,10 @@ class ExteriorMoment(unittest.TestCase):
     def test_bc_de_out_of_range(self):
         with self.assertRaises(d.OutOfRange):
             d.moment_exterior("b", S=3000, L=30000, d=1000, Nb=4, de=1500)
+
+    def test_bc_negative_de_beyond_table(self):  # tr.47: de=-100 ngoài [0..1400] -> vẫn tính
+        r = d.moment_exterior("c", S=3000, L=30000, d=1000, Nb=4, de=-100)
+        self.assertAlmostEqual(r.parts["≥2 làn"], 0.617983, places=5)
 
     # Bảng 8, tr.48 — hàng f/g: e1 = 1,125 + d/9100; e2 = 1,04 + de/7600; de <= 600
     def test_fg(self):
@@ -462,6 +476,39 @@ class DeckAndSlab(unittest.TestCase):
     def test_slab_skew(self):  # pt (19): r = 1,05 - 0,25·tan θ <= 1,00
         self.assertAlmostEqual(d.slab_skew_factor(30), 0.905662, places=5)
         self.assertEqual(d.slab_skew_factor(0), 1.0)
+
+
+class SpecialLoad(unittest.TestCase):
+    # Điều 6.2.2.5, pt (16): G = Gp·(g1/Z) + GD·(gm − g1/Z)
+    def test_non_lever(self):  # Z=1,20: g1/Z = 0.5 -> 1000*0.5 + 2000*(0.7-0.5) = 900
+        self.assertAlmostEqual(d.special_load_effect(1000, 2000, 0.6, 0.7), 900.0, places=6)
+
+    def test_lever(self):  # Z=1,0: g1/Z = 0.6 -> 1000*0.6 + 2000*(0.7-0.6) = 800
+        self.assertAlmostEqual(d.special_load_effect(1000, 2000, 0.6, 0.7, lever=True),
+                               800.0, places=6)
+
+    def test_gm_below_g1_rejected(self):
+        with self.assertRaises(ValueError):
+            d.special_load_effect(1000, 2000, 0.6, 0.4)
+
+
+class RigidFloor(unittest.TestCase):
+    # tr.47: Phần 4 chỉ nêu YÊU CẦU, không in công thức — hàm này là kết quả
+    # tĩnh học của giả thiết mặt cắt cứng, dầm như nhau cách đều S.
+    def test_five_girders_one_lane(self):
+        # Nb=5 S=2400: x_b=4800, Σx²=5,76e7; e=2700 -> 1/N + 4800*2700/Σx² = 0.2+0.225=0.425; ×1.2
+        self.assertAlmostEqual(d.rigid_exterior_g(5, 2400, 2700, 1), 0.51, places=6)
+
+    def test_two_lanes(self):  # m = 1,00
+        self.assertAlmostEqual(d.rigid_exterior_g(5, 2400, 2700, 2), 0.425, places=6)
+
+    def test_four_girders(self):
+        # Nb=4 S=2400: x_b=3600, Σx²=2.88e7; e=1800 -> 0.25+0.225=0.475; ×1.2=0.57
+        self.assertAlmostEqual(d.rigid_exterior_g(4, 2400, 1800, 1), 0.57, places=6)
+
+    def test_needs_two_girders(self):
+        with self.assertRaises(ValueError):
+            d.rigid_exterior_g(1, 2400, 1000)
 
 
 if __name__ == "__main__":

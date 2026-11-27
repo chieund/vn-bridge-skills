@@ -98,6 +98,17 @@ def _governing(parts: dict) -> str:
     return max(parts, key=parts.get)
 
 
+def _de_moment(de: float) -> float:
+    """Ghi chú tr.47 cho Bảng 8 (mô men dầm biên): de ÂM ngoài phạm vi Bảng
+    thì "lấy giới hạn tới −1,0". Bản in không ghi đơn vị cho con số này;
+    hiểu là −1,0 m = −1000 mm (đúng thang chữ tương ứng của AASHTO 3rd ed mà
+    TCVN sao dịch). Trả về de đã kẹp dưới tại −1000 mm; de dương không đổi —
+    vượt mép trên do caller ném OutOfRange (tr.47 chỉ gia hạn cho de âm).
+    ⚠ Diễn giải đơn vị: cần chủ trì thiết kế xác nhận khi trích dẫn.
+    """
+    return max(de, -1000.0) if de < 0 else de
+
+
 def moment_interior(section: str, **p) -> DistResult:
     """g mô men cho dầm bên trong — Bảng 6 (tr.44-46), Bảng 7 (tr.46).
 
@@ -263,9 +274,9 @@ def moment_exterior(section: str, **p) -> DistResult:
     """g mô men cho dầm biên ngoài — Bảng 8 (tr.48), Điều 6.2.2.2.3.
 
     de dương khi bản bụng dầm biên nằm vào phía trong bó vỉa/lan can, âm khi
-    ra ngoài; ngoài [-300; 1700] thì Bảng 8 không áp dụng. (Ghi chú tr.47 "de
-    âm ngoài phạm vi lấy giới hạn −1,0" chưa rõ đơn vị trong bản in — KHÔNG
-    mã hóa, cần đối chiếu lại trang gốc.)
+    ra ngoài. Ngoài phạm vi Bảng: de âm -> kẹp theo ghi chú tr.47 "lấy giới
+    hạn tới −1,0" (xem _de_moment — đơn vị diễn giải là m); de dương vượt
+    mép trên -> OutOfRange.
     dầm biên = max(đòn bẩy một làn, e·g_dầm_trong) theo từng hàng; có thể
     truyền g_int (float hoặc dict) để ghi đè g dầm trong khi Bảng 6 không phủ
     khoảng S đang xét.
@@ -278,7 +289,9 @@ def moment_exterior(section: str, **p) -> DistResult:
     if section in ("a", "e", "k", "i", "j"):
         _need(["S", "de"], p)
         s, de = p["S"], p["de"]
-        check_range("de", de, -300, 1700, "Bảng 8, tr.48")
+        if de > 1700:  # de dương vượt mép trên: ngoài phạm vi (tr.47 chỉ gia hạn de âm)
+            raise OutOfRange(f"de = {de:g} > 1700 — ngoài phạm vi Bảng 8, tr.48")
+        de = _de_moment(de)
         gi = _g_int(moment_interior, section, p, ["≥2 làn"])
         e = 0.77 + de / 2800.0
         parts = {
@@ -308,7 +321,9 @@ def moment_exterior(section: str, **p) -> DistResult:
             lever = lever_rule_exterior(s, de)
             return DistResult(lever, "đòn bẩy", {"đòn bẩy": lever}, "Bảng 8, tr.48")
         check_range("S", s, 1800, 5500, "Bảng 8, tr.48")
-        check_range("de", de, 0, 1400, "Bảng 8, tr.48")
+        if de > 1400:  # de dương vượt mép trên; de âm: ghi chú tr.47
+            raise OutOfRange(f"de = {de:g} > 1400 — ngoài phạm vi Bảng 8, tr.48")
+        de = _de_moment(de)
         gi = _g_int(moment_interior, section, p, ["≥2 làn"])
         e = 0.97 + de / 8700.0
         parts = {
@@ -664,3 +679,68 @@ def slab_skew_factor(theta: float) -> float:
     """
     check_range("theta", theta, 0, 90, "pt (19), tr.56")
     return min(1.05 - 0.25 * math.tan(math.radians(theta)), 1.0)
+
+
+# ---------------------------------------------------------------------------
+# Tải trọng đặc biệt — Điều 6.2.2.5, phương trình (16) (tr.55)
+# ---------------------------------------------------------------------------
+
+def special_load_effect(Gp: float, GD: float, g1: float, gm: float,
+                        lever: bool = False) -> float:
+    """Tổng hợp ứng suất xe quá tải + giao thông thường trên — pt (16), tr.55.
+
+    G = Gp·(g1/Z) + GD·(gm − g1/Z), đơn vị theo Gp/GD (kN hoặc kN·mm — bản
+    in ghi vậy trên đầu Điều 6.2.2.5). Z = 1,20 khi KHÔNG dùng quy tắc đơn
+    bẩy, 1,0 khi dùng (điều kiện: g1 là hệ số phân bố MỘT làn). Kiểm tra
+    này thuộc TTGH Cường độ II (Bảng 3 Phần 3) khi cấp phép xe quá tải.
+   KHÔNG áp dụng khi (tr.55):
+      - quy tắc đòn bẩy đã được quy định cụ thể cho cả đặt tải một làn và
+        nhiều làn; hoặc
+      - yêu cầu đặc biệt cho dầm biên mặt cắt dầm-bản có vách ngăn (mục
+        Kiểm tra mặt cắt cứng, tr.47) đã dùng để phân tích.
+    Ném ValueError nếu gm < g1/Z (số hạng GD âm — thường là nhần g1/gm).
+    """
+    Z = 1.0 if lever else 1.20
+    if gm < g1 / Z:
+        raise ValueError(
+            f"gm = {gm:g} < g1/Z = {g1 / Z:.4f} — số hạng GD của phương trình (16) "
+            "âm, kiểm tra lại g1 (một làn) và gm (nhiều làn)"
+        )
+    return Gp * (g1 / Z) + GD * (gm - g1 / Z)
+
+
+# ---------------------------------------------------------------------------
+# Kiểm tra mặt cắt cứng tuyệt đối cho dầm biên (ghi chú tr.47 kèm Bảng 8)
+# ---------------------------------------------------------------------------
+
+_MULTIPLE_PRESENCE = {1: 1.20, 2: 1.00, 3: 0.85}  # Bảng 7 Phần 3, từ 4 làn: 0,65
+
+
+def rigid_exterior_g(nb: int, s: float, e_load: float, n_lanes: int = 1) -> float:
+    """Giá trị CHẶN DƯỚI (floor) của g dầm biên theo giả thiết MẶT CẮT CỨNG
+    TUYỆT ĐỐI.
+
+    Ghi chú tr.47 (kèm Bảng 8): cầu thép dầm-bản có vách ngăn/khung ngang,
+    g dầm biên không được lấy nhỏ hơn giá trị tính với giả thiết mặt cắt
+    ngang võng xuống và quay như một mặt cắt cứng tuyệt đối; đặt tải theo
+    Điều 6.1.1.2 Phần 3 (số làn -> m Bảng 7).
+
+    ⚠ PHẦN 4 KHÔNG IN CÔNG THỨC NÀY (đã soi tr.46-47 ngày 27/11/2026). Hàm
+    dưới là KẾT QUẢ TĨNH HỌC cổ điển của đúng giả thiết đã ghi trong chuẩn,
+    cho N dầm như nhau cách đều S — dùng làm GIÁ TRỊ CHẶN DƯỚI để kiểm tra,
+    không phải số trích dẫn trực tiếp từ TCVN:
+
+        g = m·(1/Nb + x_b·e_load / Σx_i²),   Σx_i² = S²·Nb·(Nb²−1)/12
+
+    trong đó x_b = khoảng cách dầm biên tới tâm cầu = S·(Nb−1)/2,
+    e_load = độ lệch tâm hợp tải trọng so với tâm cầu (mm, dương phía dầm
+    biên đang xét), m = hệ số làn theo Bảng 7 Phần 3.
+    """
+    if nb < 2:
+        raise ValueError(f"nb = {nb} — cần ít nhất 2 dầm để xét mặt cắt cứng")
+    if n_lanes < 1:
+        raise ValueError("n_lanes phải >= 1")
+    m = _MULTIPLE_PRESENCE.get(n_lanes, 0.65)
+    x_b = s * (nb - 1) / 2.0
+    sum_x2 = s * s * nb * (nb * nb - 1) / 12.0
+    return m * (1.0 / nb + x_b * e_load / sum_x2)

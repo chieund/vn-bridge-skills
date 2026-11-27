@@ -15,6 +15,8 @@ Lệnh:
   deflection   Độ võng hoạt tải của dầm giản đơn, so với L/800 hoặc L/1000
   dist         Hệ số phân bố hoạt tải g cho một dầm — Phần 4, Điều 6.2.2
                (Bảng 6-13: mô men / lực cắt, dầm giữa / dầm biên, cầu chéo)
+  special      Nội lực dầm khi có xe quá tải + giao thông thường — phương
+               trình (16), Điều 6.2.2.5 (tr.55)
 
 Ví dụ:
   python3 bridge_calc.py hl93 --L 30
@@ -22,6 +24,7 @@ Ví dụ:
   python3 bridge_calc.py deflection --L 30 --EI 2.5e7 --g 0.5
   python3 bridge_calc.py dist --kind moment --place interior --section k \
           --S 2400 --L 30000 --ts 200 --Kg 5e11 --Nb 5          # đầu vào theo mm
+  python3 bridge_calc.py special --Gp 640000 --GD 1.2e6 --g1 0.65 --gm 0.75
 """
 import argparse
 import sys
@@ -367,6 +370,25 @@ def cmd_dist(a):
     print(f"Bước tiếp: bridge_calc.py combine --limit-state str1 ... --m {num(g, 4)}")
 
 
+def cmd_special(a):
+    """Xe quá tải trong một làn + giao thông thường các làn cạnh — pt (16), tr.55."""
+    try:
+        G = dp.special_load_effect(a.Gp, a.GD, a.g1, a.gm, a.lever)
+    except ValueError as err:
+        print(f"ĐẦU VÀO KHÔNG HỢP LỆ: {err}")
+        sys.exit(2)
+    Z = 1.0 if a.lever else 1.20
+    print("Tải trọng đặc biệt — phương trình (16), Điều 6.2.2.5, TCVN 11823-4:2017 (tr.55)")
+    print(f"Công thức:  G = Gp·(g1/Z) + GD·(gm − g1/Z);   Z = {Z:g}"
+          f" ({'dùng quy tắc đòn bẩy' if a.lever else 'không dùng đòn bẩy'})")
+    print(f"Thay số:    G = {short(a.Gp)}×({a.g1:g}/{Z:g}) + "
+          f"{short(a.GD)}×({a.gm:g} − {a.g1:g}/{Z:g})")
+    print(f"Kết quả:    G = {num(G)} {a.unit}")
+    print("Lưu ý: kiểm tra thuộc TTGH Cường độ II (Bảng 3, Phần 3); g1 là hệ số phân bố MỘT làn.")
+    print("Không dùng pt (16) khi việc phân bố đã do quy tắc đòn bẩy quy định cụ thể, hoặc đã")
+    print("phân tích theo yêu cầu mặt cắt cứng cho dầm biên có vách ngăn (tr.55, tr.47).")
+
+
 def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")   # bảng điều khiển Windows cần UTF-8
@@ -442,6 +464,19 @@ def main(argv=None):
     x.add_argument("--g-int", type=float,
                    help="ghi đè g dầm trong (≥2 làn) khi Bảng 6/11 ngoài phạm vi")
     x.set_defaults(func=cmd_dist)
+
+    sp = sub.add_parser("special",
+                        help="Tải đặc biệt — xe quá tải + giao thông thường, pt (16) tr.55")
+    sp.add_argument("--Gp", type=float, required=True,
+                    help="nội lực/ứng suất do xe quá tải cấp phép (kN hoặc kN·mm — bản in ghi vậy)")
+    sp.add_argument("--GD", type=float, required=True,
+                    help="nội lực do tải thiết kế HL-93 (cùng đơn vị Gp)")
+    sp.add_argument("--g1", type=float, required=True, help="g phân bố MỘT làn")
+    sp.add_argument("--gm", type=float, required=True, help="g phân bố nhiều làn")
+    sp.add_argument("--lever", action="store_true",
+                    help="Z = 1,0 (phân bố một làn tính theo quy tắc đòn bẩy)")
+    sp.add_argument("--unit", default="kN·mm", help="đơn vị của G")
+    sp.set_defaults(func=cmd_special)
 
     a = p.parse_args(argv)
     if getattr(a, "lanes", None) is not None:

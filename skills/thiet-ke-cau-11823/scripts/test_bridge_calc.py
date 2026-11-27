@@ -153,5 +153,17 @@ class LenhDist(unittest.TestCase):
         self.assertEqual(cm.exception.code, 2)
 
 
+class LenhSpecial(unittest.TestCase):
+    """Lệnh special in báo cáo phương trình (16) — xe quá tải + giao thông thường."""
+
+    def test_non_lever(self):  # 1000×0.5 + 2000×0.2 = 900
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            t.main(["special", "--Gp", "1000", "--GD", "2000", "--g1", "0.6", "--gm", "0.7"])
+        out = buf.getvalue()
+        self.assertIn("G = 900.0", out)
+        self.assertIn("Z = 1.2", out)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -102,7 +102,10 @@ chính xác theo Điều 6.3.
 
 Cự ly dầm khác nhau → g dầm biên là hàm của g_bên trong (theo khoảng cách dầm biên – dầm
 giữa thứ nhất). de lấy giá trị dương nếu bản bụng dầm biên ở vào phía trong của lan can chắn
-xe, âm nếu ở về phía ngoài (tr.46); **de âm ngoài phạm vi Bảng 8 → de lấy giới hạn tới −1,0** (tr.47).
+xe, âm nếu ở về phía ngoài (tr.46); **de âm ngoài phạm vi áp dụng quy định trong Bảng 8 thì
+"de nên lấy giới hạn tới −1,0"** (tr.47 — bản in không ghi đơn vị cho −1,0; hiểu theo thang
+m, tức −1000 mm, đúng như chữ tương ứng của AASHTO 3rd ed; script kẹp theo cách hiểu này,
+xem `_de_moment` trong distribution.py).
 
 | Loại (Bảng 4) | 1 làn | ≥2 làn | Phạm vi áp dụng |
 |---|---|---|---|
@@ -117,6 +120,11 @@ xe, âm nếu ở về phía ngoài (tr.46); **de âm ngoài phạm vi Bảng 8 
 Kiểm tra bắt buộc với cầu thép dầm–bản có vách ngăn/khung ngang (tr.47): g dầm biên **không được
 lấy bé hơn** giá trị tính theo giả thiết mặt cắt ngang võng xuống và quay như một **mặt cắt cứng
 tuyệt đối**; áp dụng Điều 6.1.1.2 Phần 3.
+⚠ **Phần 4 không in công thức cho kiểm tra này** (soi tr.46–47 ngày 27/11/2026 — chỉ có câu
+quy định như trên). `distribution.py` cung cấp `rigid_exterior_g()`: giá trị chặn dưới theo kết
+quả tĩnh học cổ điển của đúng giả thiết mặt cắt cứng cho N dầm như nhau cách đều S,
+`g = m·(1/Nb + x_b·e/Σx²)` — khi trích dẫn vào hồ sơ phải ghi rõ là suy từ giả thiết, không phải
+số in trong TCVN.
 
 ## F. Hiệu chỉnh cầu chéo cho mô men (Bảng 9, tr.49; Điều 6.2.2.2.4)
 

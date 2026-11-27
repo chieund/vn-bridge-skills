@@ -31,7 +31,7 @@ Trước khi trả lời, xác định câu hỏi thuộc dòng nào và **đọ
 | Câu hỏi về | Đọc file | Lệnh script |
 |---|---|---|
 | Hệ số Phần 2–3: tải HL-93, IM, hệ số làn m, γ tổ hợp, lực hãm BR / ly tâm CE / gió, giới hạn võng | `references/phan-2-3-tai-trong.md` | `hl93`, `combine`, `deflection` |
-| Phân bố hoạt tải cho từng dầm (g mô men / lực cắt, dầm giữa / dầm biên, cầu chéo, dầm ngang, dải tương đương cầu bản) | `references/phan-4-phan-bo.md` | `dist` |
+| Phân bố hoạt tải cho từng dầm (g mô men / lực cắt, dầm giữa / dầm biên, cầu chéo, dầm ngang, dải tương đương cầu bản), xe quá tải cấp phép | `references/phan-4-phan-bo.md` | `dist`, `special` |
 | Soạn / định dạng đoạn thuyết minh, văn phong hồ sơ | `references/thuyet-minh.md` | chạy lệnh tính trước, dán kết quả vào khuôn 4 dòng |
 
 Bài toán ngoài phạm vi bản nháp (động đất chi tiết, móng cọc chi tiết, dây văng, đúc hẫng...)
@@ -77,6 +77,7 @@ python3 scripts/bridge_calc.py combine --limit-state str1 \
 python3 scripts/bridge_calc.py deflection --L 30 --EI 2.5e7 --g 0.5   # võng so với L/800
 python3 scripts/bridge_calc.py dist --kind moment --place interior --section k \
         --S 2400 --L 30000 --ts 200 --Kg 5e11 --Nb 5             # g phân bố hoạt tải (Phần 4)
+python3 scripts/bridge_calc.py special --Gp 640000 --GD 1.2e6 --g1 0.65 --gm 0.75   # xe quá tải
 ```
 
 - `--limit-state`: `str1` Cường độ I, `ser1`/`ser3` Sử dụng I/III, `fat1`/`fat2` Mỏi I/II.
@@ -87,6 +88,9 @@ python3 scripts/bridge_calc.py dist --kind moment --place interior --section k \
   (nhân Bảng 9 mô men / Bảng 13 lực cắt). Ngoài phạm vi bảng in, truyền `--g-int`
   tường minh hoặc báo cần Điều 6.3. Script in "NGOÀI PHẠM VI" (exit 1) hoặc
   "THIẾU ĐẦU VÀO" (exit 2) → nói thẳng, không tự tính tay thay.
+- `special`: nội lực dầm khi có **xe quá tải cấp phép** trên một làn + giao thông
+  thường các làn cạnh theo pt (16), Điều 6.2.2.5 (tr.55); `--lever` khi g1 dùng đòn
+  bẩy (Z = 1,0). Đứng tên TTGH Cường độ II.
 - Ngoài phạm vi script (dầm liên tục, phản lực gom gối, gió, động đất...) → nói rõ,
   không tự tính tay rồi trình bày như kết quả đã kiểm.
 
@@ -115,8 +119,11 @@ Số liệu của từng Phần nằm trong file tham chiếu riêng (bảng đ�
   nguồn văn bản: https://cokhicongtrinh.com.vn/upload/files/TCVN%2011823_Phan%203_Tai-trong-va-he-so-tai-trong.pdf
 - **Phần 4** — TCVN 11823-4:2017, Điều 6.2.2–6.2.3: hệ số phân bố g mô men/lực cắt
   cho dầm giữa + dầm biên, đơn bẩy, hiệu chỉnh cầu chéo (Bảng 9/13), dầm ngang
-  (Bảng 10), dải tương đương cầu bản (Điều 6.2.3) — đã khóa trong
-  `references/phan-4-phan-bo.md`, tính bằng lệnh `dist`.
+  (Bảng 10), dải tương đương cầu bản (Điều 6.2.3), xe quá tải (pt 16) — đã khóa
+  trong `references/phan-4-phan-bo.md`, tính bằng lệnh `dist` / `special`.
+  Riêng kiểm tra **mặt cắt cứng** dầm biên có vách ngăn (tr.47): Phần 4 chỉ nêu yêu
+  cầu, KHÔNG in công thức; `distribution.rigid_exterior_g()` cho giá trị chặn dưới
+  theo tĩnh học của giả thiết đó — trích dẫn vào hồ sơ phải ghi rõ nguồn diễn giải.
 - **Phần 5, 10, 11, 14** (kết cấu bê tông, mố, mố trụ móng, gối khe) chưa đưa hệ số
   vào bản nháp này (đang mở rộng) → hỏi tới đâu thành thật tới đó.
 - Lộ trình tách skill chuyên sâu khi bản nháp ổn định: `cau-tai-trong-11823`,
