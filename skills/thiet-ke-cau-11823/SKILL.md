@@ -11,7 +11,7 @@ và không thay thế trách nhiệm thẩm tra của chủ trì thiết kế.
 
 ## 1. Nguyên tắc bắt buộc (số liệu KHÔNG được đoán)
 
-1. **Mọi hệ số lấy theo `references/he-so-co-ban.md`** — file này đã được đối chiếu
+1. **Mọi hệ số lấy theo `references/phan-2-3-tai-trong.md`** — file này đã được đối chiếu
    văn bản gốc TCVN 11823-3:2017. Trước khi trả lời có số liệu, đọc file đó trước.
 2. Hệ số **không có trong file** → nói rõ "cần kiểm tra Điều/Bảng ... của TCVN 11823
    phần X" và **không tự suy diễn**. Tuyệt đối không lấy số của AASHTO LRFD ấn bản mới
@@ -28,7 +28,7 @@ và không thay thế trách nhiệm thẩm tra của chủ trì thiết kế.
 
 | Người dùng hỏi về | Làm gì |
 |---|---|
-| Quy định / hệ số / công thức | Tra `references/he-so-co-ban.md`, trả lời ngắn + số điều khoản |
+| Quy định / hệ số / công thức | Tra `references/phan-2-3-tai-trong.md`, trả lời ngắn + số điều khoản |
 | Tính sơ bộ (kích thước, tải, nội lực giản đơn) | Mục 3 + 4 |
 | Kiểm tra chéo số liệu họ đưa (VD từ Midas) | Mục 4, so với giá trị tra được, chỉ rõ điểm lệch |
 | Viết đoạn thuyết minh | Mục 5 định dạng, văn phong hồ sơ VN |

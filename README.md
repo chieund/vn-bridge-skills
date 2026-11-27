@@ -55,7 +55,7 @@ vn-bridge-skills/
     └── thiet-ke-cau-11823/    # skill bao quát (bản nháp test)
         ├── SKILL.md           # quy trình + nguyên tắc + bẫy thường gặp
         ├── references/
-        │   └── he-so-co-ban.md  # hệ số TCVN 11823-2/3:2017 đã đối chiếu bản gốc
+        │   └── phan-2-3-tai-trong.md  # hệ số TCVN 11823-2/3:2017 đã đối chiếu bản gốc
         └── scripts/
             ├── bridge_calc.py       # HL-93, tổ hợp tải, độ võng (Python 3, không phụ thuộc)
             └── test_bridge_calc.py  # so với tính tay + kiểm hệ số khớp references

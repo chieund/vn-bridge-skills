@@ -10,7 +10,8 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import bridge_calc as t  # noqa: E402
 
-REFERENCE = (HERE.parent / "references" / "he-so-co-ban.md").read_text(encoding="utf-8")
+REFERENCE_DIR = HERE.parent / "references"
+REFERENCE = (REFERENCE_DIR / "phan-2-3-tai-trong.md").read_text(encoding="utf-8")
 
 
 class LockedCoefficientsMatchReference(unittest.TestCase):
@@ -84,6 +85,12 @@ class SimpleSpanHandCalcs(unittest.TestCase):
         # Maxwell reciprocity
         self.assertAlmostEqual(t._point_deflection(self.L, EI, 10.0, 22.0, P),
                                t._point_deflection(self.L, EI, 22.0, 10.0, P))
+
+
+class BrakingForce(unittest.TestCase):
+    def test_height_locked_to_original_text(self):
+        self.assertIn("**1 800 mm**", REFERENCE)
+        self.assertNotIn("1,2 m", REFERENCE)
 
 
 class Combinations(unittest.TestCase):

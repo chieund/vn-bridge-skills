@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Preliminary road-bridge calculations per TCVN 11823:2017 (standard library only).
 
-Every coefficient below is locked to references/he-so-co-ban.md. If you change one
+Every coefficient below is locked to references/phan-2-3-tai-trong.md. If you change one
 here, change the reference file too — test_bridge_calc.py checks that they agree.
 
 Code, comments and CLI are in English; the printed report stays in Vietnamese
@@ -23,7 +23,7 @@ import argparse
 import sys
 
 # ---------------------------------------------------------------------------
-# Locked coefficients — TCVN 11823-3:2017 (see references/he-so-co-ban.md)
+# Locked coefficients — TCVN 11823-3:2017 (see references/phan-2-3-tai-trong.md)
 # ---------------------------------------------------------------------------
 TRUCK_AXLES = (35.0, 145.0, 145.0)       # kN, art. 6.1.2.2 (section C)
 TRUCK_FRONT_SPACING = 4.3                 # m, front axle -> first rear axle

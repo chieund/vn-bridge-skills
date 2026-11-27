@@ -160,8 +160,8 @@ Một **xe tải thiết kế duy nhất** mỗi làn, khoảng cách 2 trục s
 - **BR lực hãm** (6.4): lấy **lớn hơn** của: (a) **25%** tổng trọng lượng các trục của
   xe tải/tandem thiết kế; (b) **5%** của (xe tải thiết kế + tải làn) hoặc (tandem + tải làn).
   Đặt trên **tất cả các làn chất tải** theo 6.1.1.1, cùng một chiều, có nhân **m** (6.1.1.2).
-  ⚠️ Bản trích xuất văn ghi điểm đặt "nằm ngang cách mặt đường 1 800 mm" — AASHTO gốc là
-  **1,2 m** cho lực hãm; **đối chiếu lại tr.29 bản in** trước khi dùng cho mố trụ/gối.
+  Điểm đặt nằm ngang cách mặt đường **1 800 mm**, theo chiều dọc gây ứng lực lớn nhất
+  (Điều 6.4, tr.29 — đã đối chiếu bản gốc).
 - **WL gió lên hoạt tải** (8.1.3): dải lực di động, gián đoạn **1,46 N/mm**, vuông góc kết
   cấu, cao **1 800 mm** trên mặt đường (gió 25 m/s, có xe trên cầu); thành phần vuông góc/
   song song theo góc chéo lấy theo Bảng 15. Gió lên KCTP mặt chắn đứng: 1,45 kN/m²
