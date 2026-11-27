@@ -1,4 +1,4 @@
-# vn-bridge-skills
+# tcvn-bridge-road-skills
 
 Bộ skill AI chuyên ngành **cầu đường bộ Việt Nam** (TCVN 11823:2017 và các chuẩn liên quan),
 dùng chung cho Claude Code, Codex, Gemini CLI, GitHub Copilot CLI, OpenCode — chỉ cần cài một lần.
@@ -15,8 +15,8 @@ dùng chung cho Claude Code, Codex, Gemini CLI, GitHub Copilot CLI, OpenCode —
 ## Cài đặt (2 bước)
 
 ```bash
-git clone git@github.com:chieund/vn-bridge-skills.git
-cd vn-bridge-skills && ./install.sh        # Linux / macOS / WSL
+git clone git@github.com:chieund/tcvn-bridge-road-skills.git
+cd tcvn-bridge-road-skills && ./install.sh        # Linux / macOS / WSL
 ```
 
 Windows PowerShell: chạy `.\install.ps1` (không cần quyền Administrator).
@@ -39,7 +39,7 @@ Muốn dùng riêng cho một dự án: copy hoặc symlink `skills/thiet-ke-cau
 `.agents/skills/` (Codex, Gemini, Copilot, OpenCode) hoặc `.claude/skills/` (Claude Code)
 trong dự án đó. Muốn thêm đích khác cho cài đặt toàn máy, sửa mảng `TARGETS` trong script.
 
-Repo nhiều mảng (sau này thêm đường, thủy lợi, dân dụng…): truyền tên skill để cài chọn lọc.
+Repo theo mảng cầu đường (chuẩn bị thêm `duong-4054`, `cau-22tcn272`): truyền tên skill để cài chọn lọc.
 
 ```bash
 ./install.sh --list                    # xem skill có trong repo (Windows: .\install.ps1 -List)
@@ -78,12 +78,11 @@ thành phần thật sự dùng chéo nhiều mảng (ví dụ khuôn thuyết m
 3. **Kỹ sư duyệt cuối**: output là bản nháp kỹ thuật, không thay chữ ký chủ trì thiết kế.
 4. Thêm skill mới: tạo `skills/<ten-skill>/SKILL.md` rồi chạy lại `install.sh`.
    Tên viết thường, không dấu, gạch nối, theo khuôn `<mảng>-<mã chuẩn>`:
-   - Tiền tố mảng: `cau-`, `duong-`, `dandung-`, `thuy-` (gồm thủy lợi + công trình thủy,
-     không tách hai họ chồng nhau), `kientruc-`... Một mảng = một tiền tố.
-   - Mã chuẩn: TCVN lấy số không (`cau-11823`); QCVN giữ nhãn (`kientruc-qcvn06`).
-   - **Mỗi chuẩn một skill riêng** — không gộp nhiều chuẩn vào một skill (số liệu dễ lẫn
-     giữa chuẩn, như BTCT cầu 11823-5 vs BTCT dân dụng 5574). Ngược lại, một chuẩn (kể cả
-     bộ nhiều phần như TCVN 11823-1→-14) giữ trong MỘT skill, phân phần ở cấp `references/`.
+   - Phạm vi repo = **cầu đường bộ**: tiền tố `cau-` (cầu, cống) và `duong-` (đường ô tô).
+   - Mã chuẩn: TCVN lấy số (`cau-11823`, `duong-4054`); chuẩn Bộ giữ nhãn (`cau-22tcn272`).
+   - **Mỗi chuẩn một skill riêng** — không gộp nhiều chuẩn vào một skill (số liệu dễ lẫn,
+     như TCVN 11823 vs 22TCN 272-01). Ngược lại, một chuẩn (kể cả bộ nhiều phần như
+     11823-1→-14) giữ trong MỘT skill, phân phần ở cấp `references/`.
 
 ## Cập nhật
 
